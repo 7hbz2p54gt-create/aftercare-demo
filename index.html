@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simplify Home — Aftercare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --fs:8px;
+  --acc:#0a84ff; --acc-deep:#0060df; --acc-soft:#eaf3ff;
+  --side:#0b0d12; --side-ink:#9aa3b2; --side-act:#ffffff;
+  --bg:#f5f6f8; --card:#ffffff; --ink:#16181d; --muted:#7a8089; --line:#e6e8ec;
+  --ok:#30a46c; --warn:#d97a00; --crit:#e5484d;
+  --p1:#e5484d; --p2:#e08315; --p3:#0a84ff; --p4:#8b9097;
+  --r:12px; --shadow:0 1px 2px rgba(10,12,18,.05),0 6px 20px rgba(10,12,18,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:var(--fs)}
+body{font-family:'Poppins',-apple-system,sans-serif;background:var(--bg);color:var(--ink);font-size:var(--fs);line-height:1.55}
+h1,h2,h3,h4,b,strong{font-size:var(--fs)}
+button{font:inherit;font-size:var(--fs);cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font:inherit;font-size:var(--fs);color:inherit;width:100%;padding:.7em 1em;border:1px solid var(--line);border-radius:8px;background:#fff;transition:.15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
+textarea{resize:vertical;min-height:6em}
+label{display:block;font-size:var(--fs);font-weight:700;color:var(--muted);margin:1.2em 0 .4em;text-transform:uppercase;letter-spacing:.08em}
+input[type=checkbox]{width:auto}
+input[type=date],input[type=number]{width:auto}
+a{color:var(--acc)}
+
+/* ===== layout: sidebar + main ===== */
+.layout{display:flex;min-height:100vh}
+aside{width:200px;background:var(--side);color:var(--side-ink);position:fixed;top:0;bottom:0;left:0;z-index:60;display:flex;flex-direction:column;transition:transform .25s}
+.main{flex:1;margin-left:200px;min-width:0}
+.brand{padding:1.6em 1.4em 1.2em;display:flex;gap:.8em;align-items:center;border-bottom:1px solid rgba(255,255,255,.07)}
+.mono{width:3.4em;height:3.4em;border-radius:9px;background:linear-gradient(135deg,var(--acc),var(--acc-deep));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.brand .nm{font-weight:700;color:#fff}
+.brand .tg{text-transform:uppercase;letter-spacing:.18em;opacity:.6}
+.snav{flex:1;overflow-y:auto;padding:1em 0}
+.snav .sec{padding:1.4em 1.6em .4em;text-transform:uppercase;letter-spacing:.16em;font-weight:700;opacity:.45}
+.snav button{display:flex;align-items:center;gap:.9em;width:100%;text-align:left;padding:.85em 1.6em;color:var(--side-ink);font-weight:500;border-left:2px solid transparent;transition:.15s}
+.snav button:hover{color:#fff;background:rgba(255,255,255,.04)}
+.snav button.act{color:var(--side-act);background:rgba(255,255,255,.07);border-left-color:var(--acc);font-weight:700}
+.snav button.sub{padding-left:3.2em;font-weight:400}
+.snav button.sub.act{font-weight:700}
+.viewer{padding:1.2em 1.4em;border-top:1px solid rgba(255,255,255,.07)}
+.viewer label{margin:0 0 .4em;color:var(--side-ink);opacity:.7}
+.viewer select{background:#171a21;color:#fff;border-color:rgba(255,255,255,.12)}
+.topbar{display:none;position:sticky;top:0;z-index:50;background:var(--side);color:#fff;padding:1em 1.2em;align-items:center;gap:1em}
+.burger{font-weight:700;padding:.4em .8em;border:1px solid rgba(255,255,255,.25);border-radius:7px}
+main{max-width:1180px;margin:0 auto;padding:2em 1.8em 8em}
+.pagehead{display:flex;align-items:center;gap:1em;margin-bottom:1.6em;flex-wrap:wrap}
+.pagehead h2{font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.pagehead .sub{color:var(--muted)}
+.pagehead .right{margin-left:auto;display:flex;gap:.8em;flex-wrap:wrap}
+@media(max-width:840px){
+  aside{transform:translateX(-100%)}
+  aside.open{transform:none}
+  .main{margin-left:0}
+  .topbar{display:flex}
+  main{padding:1.4em 1em 8em}
+}
+
+/* ===== cards / badges ===== */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:1.8em;margin-bottom:1.4em}
+.badge{display:inline-block;padding:.25em 1em;border-radius:99px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.b-status-New{background:#efe9fd;color:#6d4fc4}
+.b-status-Assigned{background:#e3effd;color:#1668c7}
+.b-status-InProgress{background:#fdf2dc;color:#a16a07}
+.b-status-Resolved{background:#e2f5ea;color:#1f7a4d}
+.b-status-Closed{background:#eceef1;color:#697078}
+.b-P1{background:#fdebec;color:var(--p1)} .b-P2{background:#fdf0e0;color:var(--p2)}
+.b-P3{background:#e3effd;color:#1668c7} .b-P4{background:#eef0f2;color:var(--p4)}
+.b-cat{background:#eef0f2;color:#586069}
+.b-design{background:#fde9f1;color:#bc3b72}
+.b-reopen{background:#fdf6d8;color:#96700a}
+.b-w-Covered{background:#e2f5ea;color:#1f7a4d}
+.b-w-NonWarranty{background:#fdebec;color:#c33}
+.b-w-OEM{background:#e9e8fd;color:#5a51c9}
+.b-w-Pending{background:#eef0f2;color:#697078}
+.b-w-Hold{background:#fdf6d8;color:#96700a}
+.b-svc{background:var(--acc-soft);color:var(--acc-deep)}
+.b-code{background:#16181d;color:#fff;letter-spacing:.1em}
+.b-eff{background:#eef0f2;color:#586069;text-transform:none;letter-spacing:0}
+
+/* ===== buttons ===== */
+.btn{display:inline-flex;align-items:center;gap:.6em;padding:.8em 1.6em;border-radius:9px;font-weight:600;transition:.15s;border:1px solid transparent}
+.btn-primary{background:var(--acc);color:#fff}
+.btn-primary:hover{background:var(--acc-deep)}
+.btn-ghost{background:#fff;border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--acc);color:var(--acc)}
+.btn-green{background:var(--ok);color:#fff}.btn-amber{background:var(--warn);color:#fff}.btn-red{background:var(--crit);color:#fff}
+.btn-sm{padding:.5em 1.1em}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.seg{display:inline-flex;background:#eceef1;border-radius:9px;padding:.3em;gap:.2em}
+.seg button{padding:.55em 1.4em;border-radius:7px;font-weight:600;color:var(--muted)}
+.seg button.act{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(10,12,18,.12);font-weight:700}
+
+/* ===== KPI ===== */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(13em,1fr));gap:1.2em;margin-bottom:1.4em}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:1.4em 1.6em;cursor:pointer;transition:.15s}
+.kpi:hover{transform:translateY(-2px);border-color:var(--acc)}
+.kpi .v{font-weight:700;color:var(--ink);font-size:var(--fs)}
+.kpi .v b{font-size:var(--fs)}
+.kpi .l{color:var(--muted);font-weight:600;margin-top:.2em;text-transform:uppercase;letter-spacing:.07em}
+.kpi.alert .v{color:var(--crit)} .kpi.good .v{color:var(--ok)} .kpi.accent .v{color:var(--acc)}
+
+/* ===== charts ===== */
+.chart-row{display:flex;align-items:center;gap:.9em;margin-bottom:.7em;cursor:pointer;border-radius:6px;padding:.2em .4em;transition:.12s}
+.chart-row:hover{background:var(--acc-soft)}
+.chart-row .nm{width:11em;flex-shrink:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chart-row .bar{flex:1;height:1.4em;background:#eceef1;border-radius:4px;overflow:hidden}
+.chart-row .bar i{display:block;height:100%;background:var(--acc);border-radius:4px}
+.chart-row .ct{width:3em;text-align:right;font-weight:700}
+.trend{display:flex;align-items:flex-end;gap:.8em;height:10em;padding-top:1em}
+.trend .tcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:.4em;cursor:pointer}
+.trend .tbar{width:70%;background:linear-gradient(180deg,var(--acc),var(--acc-deep));border-radius:4px 4px 0 0;min-height:2px;transition:.15s}
+.trend .tcol:hover .tbar{opacity:.75}
+.trend .tlb{color:var(--muted);font-weight:600}
+.donut-wrap{display:flex;gap:1.6em;align-items:center;flex-wrap:wrap}
+.legend{display:flex;flex-direction:column;gap:.5em}
+.legend span{display:flex;align-items:center;gap:.6em;cursor:pointer;font-weight:600}
+.legend i{width:1em;height:1em;border-radius:3px;display:inline-block}
+
+/* ===== tickets: list/kanban/table ===== */
+.t-row{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:1.4em 1.6em;margin-bottom:1em;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.t-row:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px}
+.t-row.bl-P1:before{background:var(--p1)}.t-row.bl-P2:before{background:var(--p2)}
+.t-row.bl-P3:before{background:var(--p3)}.t-row.bl-P4:before{background:var(--p4)}
+.t-row:hover{transform:translateY(-1px);border-color:var(--acc)}
+.t-row .top{display:flex;align-items:center;gap:.6em;flex-wrap:wrap}
+.t-row .id{font-weight:700;color:var(--acc);letter-spacing:.06em}
+.t-row h3{margin:.5em 0 .2em;font-weight:700}
+.t-row .meta{color:var(--muted)}
+.filters{display:flex;gap:.8em;flex-wrap:wrap;margin-bottom:1.4em;align-items:center}
+.filters select,.filters input{width:auto;flex:1;min-width:11em;background:var(--card)}
+.chip{display:inline-flex;align-items:center;gap:.5em;background:var(--acc-soft);color:var(--acc-deep);border-radius:99px;padding:.35em 1em;font-weight:700}
+.chip b{cursor:pointer}
+.kb{display:flex;gap:1em;overflow-x:auto;align-items:flex-start;padding-bottom:1em}
+.kb-col{min-width:17em;flex:1;background:#eceef1;border-radius:var(--r);padding:.9em}
+.kb-col h4{font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:.4em .6em .8em;display:flex;justify-content:space-between}
+.kb-card{background:#fff;border:1px solid var(--line);border-radius:9px;padding:1em;margin-bottom:.8em;cursor:pointer;box-shadow:0 1px 2px rgba(10,12,18,.06);transition:.12s}
+.kb-card:hover{border-color:var(--acc)}
+.kb-card .id{font-weight:700;color:var(--acc)}
+.kb-card .tt{font-weight:600;margin:.3em 0}
+.tbl-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+table.tbl{width:100%;border-collapse:collapse;min-width:60em}
+table.tbl th{background:#f2f3f5;text-align:left;padding:.9em 1.2em;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap}
+table.tbl td{padding:.9em 1.2em;border-bottom:1px solid #f0f1f3;white-space:nowrap}
+table.tbl tr{cursor:pointer}
+table.tbl tr:hover td{background:var(--acc-soft)}
+
+/* ===== sla ===== */
+.sla-bar{height:.5em;background:#eceef1;border-radius:99px;overflow:hidden;margin-top:.5em}
+.sla-bar i{display:block;height:100%;border-radius:99px}
+.sla-ok i{background:var(--ok)} .sla-warn i{background:var(--warn)} .sla-crit i,.sla-breach i{background:var(--crit)}
+.sla-label{font-weight:700}
+.sla-label.ok{color:var(--ok)} .sla-label.warn{color:var(--warn)} .sla-label.crit,.sla-label.breach{color:var(--crit)}
+
+/* ===== detail / timeline / misc ===== */
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(12em,1fr));gap:1em;margin-top:1.2em;padding-top:1.2em;border-top:1px solid var(--line)}
+.kv div b{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:.15em}
+.kv div span{font-weight:600}
+.banner{padding:1em 1.3em;border-radius:9px;font-weight:500;margin:1em 0;display:flex;gap:.8em;align-items:flex-start}
+.banner.warn{background:#fdf6e0;color:#7c5b09;border:1px solid #f2dfa4}
+.banner.crit{background:#fdecec;color:#9c2b2e;border:1px solid #f5c6c8}
+.banner.info{background:var(--acc-soft);color:var(--acc-deep);border:1px solid #bcd9fb}
+.banner.green{background:#e6f6ec;color:#1f6e46;border:1px solid #bfe5cd}
+.tl-item{display:flex;gap:1em;padding:.9em 0;border-bottom:1px solid #f0f1f3}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{width:.8em;height:.8em;border-radius:99px;margin-top:.4em;flex-shrink:0}
+.tl-public .tl-dot{background:var(--acc)} .tl-internal .tl-dot{background:var(--warn)} .tl-system .tl-dot{background:#b6bbc2}
+.tl-item .who{font-weight:700}
+.tl-item .when{color:var(--muted)}
+.tl-item .txt{margin-top:.2em;white-space:pre-wrap;color:#3c4046}
+.tl-tag{font-weight:700;letter-spacing:.1em;padding:.1em .6em;border-radius:4px}
+.tag-internal{background:#fdf6e0;color:#96700a}.tag-public{background:var(--acc-soft);color:var(--acc-deep)}
+.att-list{display:flex;gap:.8em;flex-wrap:wrap;margin-top:.6em}
+.att{background:#f6f7f9;border:1px solid var(--line);border-radius:8px;padding:.5em 1em;display:flex;gap:.6em;align-items:center}
+.att img{width:4em;height:4em;object-fit:cover;border-radius:6px}
+.modal-bg{position:fixed;inset:0;background:rgba(12,14,18,.55);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:1.2em;animation:fade .18s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card);border-radius:14px;max-width:52em;width:100%;max-height:88vh;overflow-y:auto;padding:2.2em;animation:up .22s}
+@keyframes up{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.modal h3{font-weight:700;margin-bottom:.3em;text-transform:uppercase;letter-spacing:.08em}
+.modal .sub{color:var(--muted)}
+.check-row{display:flex;gap:.9em;align-items:flex-start;padding:.8em 0;border-bottom:1px solid #f0f1f3}
+.check-row input{width:auto;margin-top:.3em}
+.check-row.auto-ok{color:var(--ok)} .check-row.auto-fail{color:var(--crit)}
+.actions-bar{display:flex;gap:.7em;flex-wrap:wrap;margin-top:1.4em}
+.section-title{font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin:1.8em 0 .9em;display:flex;align-items:center;gap:.9em}
+.section-title:after{content:"";flex:1;height:1px;background:var(--line)}
+.empty{text-align:center;color:var(--muted);padding:4em 1em}
+.hint{color:var(--muted);margin-top:.3em}
+.sop-note{color:var(--muted);background:#f6f7f9;border-left:2px solid var(--acc);padding:.9em 1.1em;border-radius:6px;margin-top:1em}
+.w-panel{background:#f6f7f9;border:1px solid var(--line);border-radius:9px;padding:1.2em;margin-top:.8em}
+.w-line{display:flex;justify-content:space-between;gap:.8em;padding:.5em 0;border-bottom:1px dashed #e2e4e8;flex-wrap:wrap}
+.w-line:last-child{border-bottom:none}
+.w-line .ok{color:var(--ok);font-weight:700} .w-line .no{color:var(--crit);font-weight:700} .w-line .oem{color:#5a51c9;font-weight:700}
+.admin-row{display:flex;gap:.8em;align-items:center;padding:.9em 0;border-bottom:1px solid #f0f1f3;flex-wrap:wrap}
+.admin-row:last-child{border-bottom:none}
+.admin-row .grow{flex:1;min-width:12em}
+.admin-row select,.admin-row input{width:auto}
+.swatch{width:4em;height:4em;border-radius:10px;cursor:pointer;border:2px solid transparent;display:inline-block;transition:.15s}
+.swatch.sel{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
+.lbl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16em,1fr));gap:.2em 1.4em}
+.rule-item{display:flex;gap:.9em;padding:.9em 0;border-bottom:1px solid #f0f1f3;align-items:flex-start}
+.rule-item:last-child{border-bottom:none}
+.rule-item .tx{flex:1}
+.multi{display:flex;gap:.8em;flex-wrap:wrap}
+.multi label{display:inline-flex;align-items:center;gap:.5em;margin:0;border:1px solid var(--line);border-radius:99px;padding:.4em 1em;text-transform:none;letter-spacing:0;cursor:pointer;font-weight:600;color:var(--ink)}
+.multi label.on{background:var(--acc-soft);border-color:var(--acc);color:var(--acc-deep)}
+
+/* ===================================================== */
+/* v6 — clean monochrome restyle (Zoho-like): white surfaces,
+   black accent, pastel chips only, no heading backgrounds  */
+/* ===================================================== */
+:root{--ok:#5d8a6c;--warn:#a8854e;--crit:#a85c5c;--p1:#d49a9a;--p2:#d9b58c;--p3:#a3b4d6;--p4:#c9c9cf;--shadow:none;--bg:#ffffff}
+body{background:#fff;background-image:none}
+aside{background:#fff;border-right:1px solid #ececef}
+.brand{border-bottom:1px solid #f1f1f4}
+.brand .nm{color:#111}.brand .tg{color:#a1a1aa;opacity:1}
+.mono{background:#111;color:#fff}
+.snav .sec{color:#a1a1aa;opacity:1}
+.snav button{color:#52525b;border-left:none;border-radius:8px;margin:0 .6em;width:calc(100% - 1.2em);padding:.8em 1em}
+.snav button:hover{background:#f6f6f7;color:#111}
+.snav button.act{background:#f1f1f3;color:#111;border-left:none}
+.viewer{border-top:1px solid #f1f1f4}
+.viewer label{color:#a1a1aa}
+.viewer select{background:#fff;color:#111;border:1px solid #e4e4e7}
+.topbar{background:#fff;color:#111;border-bottom:1px solid #ececef}
+.burger{border-color:#d4d4d8;color:#111}
+.pagehead h2{text-transform:none;letter-spacing:0}
+.card,.kpi,.t-row,.tbl-wrap,.kb-card,.modal{border-color:#ececef;box-shadow:none}
+.kpi:before{display:none}
+.kpi:hover{transform:none;border-color:#c9c9cf}
+.kpi .v{color:#111}.kpi.good .v{color:#111}.kpi.accent .v{color:#111}
+.kpi.alert .v{color:#a85c5c}
+.kpi .l{text-transform:none;letter-spacing:.02em;font-weight:500;color:#71717a}
+table.tbl th{background:#fff;text-transform:none;letter-spacing:0;color:#71717a;font-weight:600;padding:1.1em 1.2em;border-bottom:1px solid #ececef}
+table.tbl td{padding:1.2em;border-bottom:1px solid #f4f4f5}
+table.tbl tr:hover td{background:#fafafa}
+.badge{font-weight:600;text-transform:none;letter-spacing:.02em;padding:.32em 1em;background:#f4f4f5;border-radius:6px}
+.b-status-New{color:#52525b}
+.b-status-Assigned{color:#54688c}
+.b-status-InProgress{color:#8d744a}
+.b-status-Resolved{color:#527e62}
+.b-status-Closed{color:#8a8a93}
+.b-P1{color:#a05c5c}.b-P2{color:#97774e}
+.b-P3{color:#5b6f9c}.b-P4{color:#7a7a83}
+.b-cat{color:#71717a;font-weight:500}
+.b-design{color:#9a607c}
+.b-reopen{color:#8d7840}
+.b-w-Covered{color:#527e62}
+.b-w-NonWarranty{color:#a05c5c}
+.b-w-OEM{color:#6b6f9e}
+.b-w-Pending{color:#7a7a83}
+.b-w-Hold{color:#8d7840}
+.b-svc{color:#557c6f}
+.b-code{color:#111;font-weight:700;letter-spacing:.04em}
+.b-eff{background:#fff;border:1px solid #ececef;color:#71717a;padding:.32em 1em;border-radius:99px}
+.btn-primary{background:#111;color:#fff}
+.btn-primary:hover{background:#000;box-shadow:none;transform:none}
+.btn-ghost{border-color:#e4e4e7}
+.btn-ghost:hover{border-color:#111;color:#111;background:#fafafa}
+.btn-green{background:#e9f4ed;color:#3f6b50}.btn-amber{background:#faf1e4;color:#8a6a40}.btn-red{background:#fbecec;color:#964f4f}
+.btn-green:hover,.btn-amber:hover,.btn-red:hover{transform:none;box-shadow:none;filter:brightness(.97)}
+.seg{background:#f4f4f5}
+.seg button.act{box-shadow:0 1px 2px rgba(0,0,0,.07)}
+input:focus,select:focus,textarea:focus{border-color:#111;box-shadow:0 0 0 3px rgba(17,17,17,.06)}
+.t-row:hover{border-color:#c9c9cf;transform:none}
+.t-row .id{color:#111}
+.t-row.bl-P1:before{background:#e6baba}.t-row.bl-P2:before{background:#e6cdaa}
+.t-row.bl-P3:before{background:#bccadf}.t-row.bl-P4:before{background:#e0e0e4}
+.sla-bar{background:#f1f1f3}
+.sla-ok i{background:#a8ccb3}.sla-warn i{background:#dec694}.sla-crit i,.sla-breach i{background:#dba3a3}
+.banner{font-weight:500}
+.banner.warn{background:#fbf7ea;color:#85703c;border-color:#efe5c6}
+.banner.crit{background:#fdf2f2;color:#8c4a4a;border-color:#f3dcdc}
+.banner.info{background:#f2f5fa;color:#52688c;border-color:#dfe7f2}
+.banner.green{background:#eff7f1;color:#4e7e5f;border-color:#daeadf}
+.chart-row:hover{background:#f6f6f7}
+.chart-row .bar{background:#f1f1f3}
+.chart-row .bar i{background:#3f3f46}
+.trend .tbar{background:#27272a}
+.tl-dot{box-shadow:0 0 0 3px #f4f4f5}
+.tl-public .tl-dot{background:#27272a}.tl-internal .tl-dot{background:#d9b58c}.tl-system .tl-dot{background:#d4d4d8}
+.tag-internal{background:#faf1e4;color:#94734a}.tag-public{background:#f4f4f5;color:#3f3f46}
+.section-title{color:#a1a1aa;letter-spacing:.1em}
+.section-title:after{background:#f1f1f4}
+.kb-col{background:#fafafa;border:1px solid #f1f1f4}
+.kb-col h4{color:#71717a;text-transform:none;letter-spacing:0}
+.w-panel{background:#fafafa;border-color:#f1f1f4}
+.w-line{border-bottom-color:#ececef}
+.w-line .ok{color:#4e7e5f}.w-line .no{color:#a05c5c}.w-line .oem{color:#6b6f9e}
+.check-row.auto-ok{color:#4e7e5f}.check-row.auto-fail{color:#a05c5c}
+.chip{background:#f4f4f5;color:#3f3f46}
+.sop-note{background:#fafafa;border-left-color:#d4d4d8}
+.swatch.sel{border-color:#111;box-shadow:0 0 0 3px rgba(17,17,17,.1)}
+.modal-bg{background:rgba(17,17,17,.4)}
+.sla-label.ok{color:#4e7e5f}.sla-label.warn{color:#94734a}.sla-label.crit,.sla-label.breach{color:#a05c5c}
+body.webform-mode aside,body.webform-mode .topbar{display:none}
+body.webform-mode .main{margin-left:0}
+.webform-wrap{min-height:100vh;display:flex;justify-content:center;padding:3em 1em;background:#fafafa}
+.webform-card{background:#fff;border:1px solid #ececef;border-radius:14px;padding:2em;max-width:34em;width:100%;align-self:flex-start}
+.webform-card .wf-head{display:flex;align-items:center;gap:.8em;margin-bottom:.4em}
+.webform-card .wf-head .mono{width:2.4em;height:2.4em;border-radius:8px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.webform-card .wf-head .tg{color:#a1a1aa}
+
+/* ===================================================== */
+/* SBI Card-style overlay: black util bar, blue sidebar profile, rings, pills */
+/* ===================================================== */
+.util-bar{position:fixed;top:0;left:0;right:0;height:2.6em;background:#0b0d12;color:#aab0bd;display:flex;align-items:center;justify-content:space-between;padding:0 1.4em;font-size:calc(var(--fs) - 1px);letter-spacing:.04em;z-index:80}
+.util-bar a{color:#aab0bd;text-decoration:none}
+aside{top:2.6em}
+.main{margin-top:2.6em}
+@media(max-width:840px){aside{top:2.6em}}
+
+/* profile avatar + dropdown in util bar */
+.ub-profile-wrap{position:relative;display:flex;align-items:center}
+.ub-avatar{width:2.4em;height:2.4em;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc-deep));color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:calc(var(--fs) - 1px);letter-spacing:0}
+.ub-menu{position:absolute;top:calc(100% + .6em);right:0;min-width:14em;background:linear-gradient(135deg,var(--acc),var(--acc-deep));color:#fff;border-radius:10px;padding:1.2em 1.4em;box-shadow:0 10px 30px rgba(0,0,0,.25);display:none;flex-direction:column;gap:.3em;z-index:90}
+.ub-menu.open{display:flex}
+.ub-menu-welcome{font-size:calc(var(--fs) - 1px);opacity:.85;text-transform:uppercase;letter-spacing:.12em}
+.ub-menu-name{font-weight:700;font-size:calc(var(--fs) + 2px);margin-bottom:.3em}
+.ub-menu-row{font-size:calc(var(--fs) - 1px);opacity:.9}
+.ub-menu-link{margin-top:.6em;display:inline-flex;align-items:center;gap:.4em;background:rgba(255,255,255,.18);border-radius:99px;padding:.35em 1em;font-weight:600;font-size:calc(var(--fs) - 1px);align-self:flex-start;color:#fff}
+
+/* ring widgets */
+.ring-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(14em,1fr));gap:1.4em;margin-bottom:1.4em}
+.ring-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:1.6em;display:flex;align-items:center;gap:1.4em}
+.ring-card .ring-svg{flex-shrink:0}
+.ring-card .ring-label{font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-size:calc(var(--fs) - 1px)}
+.ring-card .ring-value{font-size:calc(var(--fs) + 6px);font-weight:700;color:var(--ink)}
+.ring-card .ring-sub{color:var(--muted);font-size:calc(var(--fs) - 1px)}
+
+/* filled pill badges (SBI "PAID" style) */
+.badge.pill-fill,.badge.b-status-Closed,.badge.b-w-Covered{background:var(--ok);color:#fff;border-radius:99px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="util-bar"><span id="ubDate"></span><div class="ub-profile-wrap" id="ubProfile"></div></div>
+<div class="layout">
+  <aside id="side"></aside>
+  <div class="main">
+    <div class="topbar"><button class="burger" onclick="document.getElementById('side').classList.toggle('open')">☰ Menu</button><b id="tbBrand"></b></div>
+    <main id="view"></main>
+  </div>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+/* ================= CONSTANTS ================= */
+const HOURS=3600e3, DAY=24*HOURS;
+const THEMES={
+  "Sky Blue":{acc:"#00a9e0",deep:"#005f8e",soft:"#e6f6fd",side:"#ffffff"},
+  "Black & White":{acc:"#18181b",deep:"#000000",soft:"#f4f4f5",side:"#ffffff"},
+  "Soft Indigo":{acc:"#6f76c9",deep:"#555cb3",soft:"#eef0fa",side:"#ffffff"},
+};
+const DEFAULT_LABELS={
+  ticket:"Complaint", tickets:"Complaints", project:"Project", client:"Client", owner:"Service Owner",
+  category:"Category", priority:"Priority", status:"Status", warranty:"Warranty",
+  dashboard:"Dashboard", newTicket:"New Request", rules:"Rules", admin:"Control Panel",
+  myWarranty:"My Warranty", accessWindow:"Access Window", resolutionSummary:"Resolution Summary",
+  attachments:"Attachments", timeline:"Timeline", projectCode:"Project Code", users:"Users (Employees)", clients:"Clients"
+};
+const BREACH_REASONS=["Client unavailable","Parts pending","Design clarification pending","Capacity/resource constraint","External dependency (OEM/vendor)"];
+const PRIORITY_GUIDE={
+  P1:"Safety risk, severe leak near electricals, unit falling hazard",
+  P2:"Critical usability blocked — kitchen/wardrobe unusable",
+  P3:"Normal functional issue — alignment, hinge, soft-close",
+  P4:"Cosmetic — touch-up, shade, minor surface mark"};
+const SERVICE_TYPES=["Warranty claim","Free service visit (quarterly)","Chargeable service","OEM coordination"];
+const D1_EXCLUSIONS=["Improper maintenance / misuse","Unintended use / abnormal load or impact","Removed / altered / repaired by unauthorised persons","Property resold or transferred","Normal wear & tear (scratches, dents, marks)","Rusting due to chemicals / harsh cleaning agents","Leakage / seepage / dampness / water ingress","Sunlight / heat / environmental degradation","Abrasive or inappropriate chemicals","Negligence / pest / termite","Force majeure","Third-party damage (painters, movers, pets) after installation"];
+const ROLES={superadmin:"Super Admin",opshead:"Ops Head / Leadership",manager:"Service Manager",engineer:"Engineer",designer:"Designer"};
+
+/* ===== module builder (Zoho-style) ===== */
+const FIELD_TYPES=["text","textarea","number","date","select","checkbox","email","phone","currency"];
+function defaultModules(){return [
+  {id:"complaints",core:true,nameKey:"tickets",labelKeys:["ticket","tickets","newTicket","category","priority","status","owner","warranty","resolutionSummary","attachments","timeline","accessWindow"],custom:[]},
+  {id:"projects",core:true,nameKey:"project",labelKeys:["project","projectCode"],custom:[]},
+  {id:"clients",core:true,nameKey:"clients",labelKeys:["client","clients"],custom:[]},
+  {id:"users",core:true,nameKey:"users",labelKeys:["users"],custom:[]},
+]}
+/* ===== workflows (approvals + SLA) ===== */
+const WF_TRIGGERS={create:"On complaint created",triage:"On triage / assignment",warranty:"On warranty decision",resolve:"On resolved",sla70:"SLA reaches 70%",sla90:"SLA reaches 90%",sla100:"SLA breached (100%)"};
+const WF_FIELDS={priority:"Priority",status:"Status",category:"Category",warrantyDecision:"Warranty decision",serviceType:"Service type",projectCode:"Project code"};
+const WF_OPS={equals:"equals",not:"is not",contains:"contains"};
+const WF_ACTIONS={approval:"Require approval (role)",assign:"Auto-assign to user",setPriority:"Set priority",notify:"Internal notification",escalate:"Escalate to leadership"};
+function defaultWorkflows(){return [
+  {id:"w1",name:"Paid (non-warranty) work requires Ops Head approval",module:"complaints",trigger:"warranty",cond:{field:"warrantyDecision",op:"equals",value:"NonWarranty"},action:{type:"approval",param:"opshead"},active:true,effective:AGREEMENT_DATE},
+  {id:"w2",name:"P1 resolution requires Ops Head approval before closure",module:"complaints",trigger:"resolve",cond:{field:"priority",op:"equals",value:"P1"},action:{type:"approval",param:"opshead"},active:true,effective:AGREEMENT_DATE},
+  {id:"w3",name:"Notify leadership at 90% SLA",module:"complaints",trigger:"sla90",cond:null,action:{type:"notify",param:"90% of SLA consumed — L2 Operations Manager notified"},active:true,effective:AGREEMENT_DATE},
+]}
+/* ===== variables with effective dates ===== */
+function defaultVars(){return [
+  {key:"sla.P1",label:"Resolution SLA — P1 (hours)",value:24},
+  {key:"sla.P2",label:"Resolution SLA — P2 (hours)",value:48},
+  {key:"sla.P3",label:"Resolution SLA — P3 (hours)",value:48},
+  {key:"sla.P4",label:"Resolution SLA — P4 (hours)",value:72},
+  {key:"reopenDays",label:"Reopen window (days)",value:7},
+  {key:"noticeDays",label:"Defect notice window (days)",value:7},
+  {key:"visibleDefectDays",label:"Visible-defect reporting window (days)",value:15},
+  {key:"freeVisits",label:"Free service visits / first year",value:4},
+].map(v=>Object.assign(v,{effective:AGREEMENT_DATE,history:[]}))}
+function getVar(k){const v=(state.vars||[]).find(x=>x.key===k);if(v)return +v.value;
+  return {"sla.P1":24,"sla.P2":48,"sla.P3":48,"sla.P4":72,reopenDays:7,noticeDays:7,visibleDefectDays:15,freeVisits:4}[k]}
+
+/* coverage uses keys into project.warranty so each project carries its own warranty inputs */
+const COV_TPL={
+  "Modular (carcass + install + edges)":[["Carcass / shutters (mfg + install defects)","carcass","SH"],["Installation workmanship (alignment/fitment)","install","SH"],["Edge banding / lamination","edge","SH"]],
+  "On-site works (workmanship)":[["On-site workmanship defects","onsite","SH"]],
+  "OEM / branded item":[["Branded item — OEM/brand warranty",null,"OEM"]],
+  "As-is / no warranty":[["As-is unless expressly covered in BOQ",null,"ASIS"]],
+  "Excluded (D1)":[["Not covered — agreement exclusion",null,"NONE"]],
+};
+function defaultCategories(){return {
+  "Modular Kitchen":      {tpl:"Modular (carcass + install + edges)", note:"Shade/grain variations are not defects."},
+  "Wardrobe":             {tpl:"Modular (carcass + install + edges)", note:"Shade/grain variations are not defects."},
+  "Other Modular Unit":   {tpl:"Modular (carcass + install + edges)", note:"TV units, crockery, vanity, study units."},
+  "False Ceiling / POP":  {tpl:"On-site works (workmanship)", note:"Hairline cracks at joints and ±3 mm undulation are industry-acceptable, NOT defects unless proven workmanship failure."},
+  "Countertop / Stone":   {tpl:"As-is / no warranty", note:"Stains, chips from impact, shade/vein variation, visible seams are not defects."},
+  "Electrical & Lighting":{tpl:"On-site works (workmanship)", note:"Existing wiring quality may limit outcomes. Branded fixtures → OEM."},
+  "Painting / Touch-up":  {tpl:"On-site works (workmanship)", note:"Shade variation under different lighting is normal."},
+  "Hardware & Accessories":{tpl:"OEM / branded item", note:"OEM/brand warranty — we coordinate the claim; decision lies with brand."},
+  "Appliances":           {tpl:"OEM / branded item", note:"OEM/brand warranty — we coordinate only."},
+  "Plumbing / Seepage":   {tpl:"Excluded (D1)", note:"Leakage/seepage/dampness is excluded; wood damage from moisture voids warranty."},
+  "On-site Works / Civil":{tpl:"On-site works (workmanship)", note:"Excludes seepage/structural issues."},
+  "Other":                {tpl:"As-is / no warranty", note:""}
+}}
+
+const AGREEMENT_DATE="2026-02-24";
+function defaultRules(){let i=0;const R=(section,text)=>({id:"r"+(++i),section,text,effective:AGREEMENT_DATE,history:[]});return [
+  R("Warranty Matrix","Modular carcass / shutters (ply/MDF/laminate per BOQ) — manufacturing + installation workmanship defects — 10 years."),
+  R("Warranty Matrix","Edge banding / lamination / finishes — adhesion failures and workmanship defects — 1 year."),
+  R("Warranty Matrix","Modular installation workmanship (alignment/fitment, not misuse or site damage) — 12 months."),
+  R("Warranty Matrix","On-site works per BOQ (painting, ceiling, electrical, civil) — workmanship defects excl. seepage/structural — 6 months."),
+  R("Warranty Matrix","Branded hardware / appliances / lighting — OEM/brand warranty; we coordinate the claim, decision lies with brand."),
+  R("Warranty Matrix","Consumables, sealants, client-supplied items, countertops unless in BOQ — as-is, no warranty."),
+  R("Warranty Matrix","Free routine service visits (alignment/adjustments) — visit charge waived, parts extra — 1 per quarter, max 4, first 12 months."),
+  R("Warranty Conditions","Warranty starts from Handover Date, or Deemed Handover — 3 days after certificate issued (§14.4)."),
+  R("Warranty Conditions","No warranty while dues are pending — claims may be rejected or held until cleared (§15.3)."),
+  R("Warranty Conditions","Replaced parts carry only the remaining original warranty term — no fresh warranty (§15.7)."),
+  R("Claim Procedure","Client must notify in writing (portal/email) within 7 days of noticing the defect, with photos/videos."),
+  R("Claim Procedure","Visible/manufacturing/transit/install defects must be reported within 15 days post-installation, else may be treated as wear-and-tear."),
+  R("Claim Procedure","Inspection (remote or site) happens before any remedy. No dismantling or third-party repair before inspection — tampering may void the claim."),
+  R("Claim Procedure","If covered: repair or replace at our option; nearest match on colour/batch. If not covered: chargeable with estimate (D4)."),
+  R("Exclusions","Leakage / seepage / dampness / water ingress — and wood damage caused by it."),
+  R("Exclusions","Wear & tear, scratches, dents; rusting from chemicals; sunlight/heat degradation; misuse; third-party damage; pests; force majeure."),
+  R("Exclusions","Industry-acceptable tolerances (not defects): hairline ceiling cracks at joints, ±3 mm undulation, quartz stains/seams, shade variation under lighting."),
+  R("Escalation & SLA","L1 Execution PM ≤ 24 h · L2 Operations Manager ≤ 48 h · L3 Senior Leadership ≤ 72 h (Annexure H3). Auto-flags at 70% / 90% / breach."),
+  R("Escalation & SLA","Resolution SLAs: P1 24h · P2 48h · P3 48h · P4 72h. Intake from call/WhatsApp logged within 10 minutes. Triage: P1/P2 30 min, P3/P4 4 h."),
+  R("Escalation & SLA","Reopen window: 7 days after closure. Second reopen triggers leadership review + CAPA."),
+  R("Escalation & SLA","Official channels: portal/ticket and email. Phone/WhatsApp are not official until confirmed by ticket/email (Annexure H1)."),
+]}
+
+function defaultCfg(){return {
+  appName:"Simplify Home", tagline:"Aftercare", monogram:"S",
+  theme:"Sky Blue", fontSize:8,
+  sla:{P1:24,P2:48,P3:48,P4:72}, reopenDays:7, noticeDays:7, visibleDefectDays:15, freeVisits:4,
+  labels:Object.assign({},DEFAULT_LABELS)
+}}
+function L(k){return (state.cfg.labels&&state.cfg.labels[k])||DEFAULT_LABELS[k]||k}
+function defaultWarranty(){return {carcass:120,install:12,edge:12,onsite:6}}
+
+function defaultUsers(){return [
+  {id:"admin", code:"EMP-001", name:"Prasad", role:"superadmin", active:true},
+  {id:"ravi",  code:"EMP-002", name:"Ravi",   role:"opshead",    active:true},
+  {id:"meera", code:"EMP-003", name:"Meera",  role:"manager",    active:true},
+  {id:"arun",  code:"EMP-004", name:"Arun",   role:"engineer",   active:true},
+  {id:"kiran", code:"EMP-005", name:"Kiran",  role:"engineer",   active:true},
+  {id:"divya", code:"EMP-006", name:"Divya",  role:"designer",   active:true},
+]}
+function defaultClients(){return [
+  {id:"bhavani",name:"Bhavani Bhargavi", phone:"+91 63035 26887", email:"bhavani.mp007@gmail.com"},
+  {id:"anita",  name:"Anita Pendoti",    phone:"+91 90000 11223", email:"anita@example.com"},
+  {id:"sharma", name:"Mr. Sharma",       phone:"+91 98888 77665", email:"sharma@example.com"},
+]}
+/* ================= STATE / SEED ================= */
+let state = load() || seed();
+
+function uname(id){const u=state.users.find(u=>u.id===id);if(u)return u.name;const c=state.clients.find(c=>c.id===id);return c?c.name:id||"—"}
+function users(){return state.users.filter(u=>u.active!==false)}
+function engineers(){return users().filter(u=>u.role==="engineer")}
+function now(){return Date.now()}
+function projByCode(code){return state.projects.find(p=>p.code===code)}
+function catNames(){return Object.keys(state.categories)}
+function catDef(c){return state.categories[c]||{tpl:"As-is / no warranty",note:""}}
+
+function seed(){
+  const n=now();
+  const projects=[
+    {code:"PRJ-001", name:"Primark Econest — 3BHK", clients:["bhavani","anita"], handover:n-4*30*DAY,  duesCleared:true,  freeVisitsUsed:1, warranty:defaultWarranty()},
+    {code:"PRJ-002", name:"Lakeview Villa",         clients:["sharma"],          handover:n-14*30*DAY, duesCleared:true,  freeVisitsUsed:4, warranty:defaultWarranty()},
+    {code:"PRJ-003", name:"Skyline 12B",            clients:["bhavani"],         handover:n-2*30*DAY,  duesCleared:false, freeVisitsUsed:0, warranty:defaultWarranty()},
+  ];
+  const T=(id,code,cid,title,desc,cat,pri,status,owner,createdAt,extra)=>Object.assign(mk(id,code,cid,title,desc,cat,pri,status,owner,createdAt),extra||{});
+  const tickets=[
+    T("TKT-010","PRJ-001","bhavani","Kitchen shutter misaligned, soft-close not engaging","Two overhead shutters don't align; left one doesn't soft-close fully.","Modular Kitchen","P2","InProgress","arun",n-20*HOURS,{
+      assignedAt:n-19.5*HOURS,serviceType:"Warranty claim",warrantyDecision:"Covered",
+      timeline:[ev("system","",n-20*HOURS,"Ticket created via portal."),
+        ev("public","meera",n-20*HOURS+3e5,"Your request is logged as TKT-010. We will update you shortly."),
+        ev("system","meera",n-19.5*HOURS,"Triage — Modular Kitchen, P2, Warranty claim. Assigned to Arun."),
+        ev("system","meera",n-19.5*HOURS,"Warranty decision: COVERED — installation workmanship, ~4 months since handover."),
+        ev("internal","arun",n-17*HOURS,"Likely hinge plate shift. Carrying hinge set. Visit 4 PM."),
+        ev("system","arun",n-4*HOURS,"Status: Assigned → In Progress")],
+      attachments:[{name:"shutter-gap.jpg",by:"bhavani"},{name:"before-hinge.jpg",by:"arun"}]}),
+    T("TKT-009","PRJ-001","anita","Wardrobe drawer channel broken (Hettich)","Bottom drawer channel snapped; drawer tilts when opened.","Hardware & Accessories","P3","Assigned","kiran",n-30*HOURS,{
+      assignedAt:n-27*HOURS,serviceType:"OEM coordination",warrantyDecision:"OEM",
+      timeline:[ev("system","",n-30*HOURS,"Ticket created via portal."),
+        ev("system","meera",n-27*HOURS,"Triage — Hardware & Accessories, P3, OEM coordination. Assigned to Kiran."),
+        ev("system","meera",n-27*HOURS,"Warranty decision: OEM REFERRED — Hettich warranty (Annexure C-II)."),
+        ev("public","kiran",n-21*HOURS,"Part claim raised with Hettich. Replacement in 3–4 working days; we will fit it free of charge.")],
+      attachments:[{name:"drawer-channel.jpg",by:"anita"}]}),
+    T("TKT-008","PRJ-001","bhavani","Hairline crack in living room false ceiling","Thin crack along the cove line near the TV wall.","False Ceiling / POP","P4","New",null,n-3*HOURS,{
+      mapped:false,siteInfo:"Flat 1203 — living room ceiling near TV wall",projText:"Primark Econest, Tower B (via WhatsApp)",projCode:"",clientId:"bhavani",
+      timeline:[ev("system","",n-3*HOURS,"Ticket created via portal. Awaiting agent mapping to project & client."),
+        ev("public","meera",n-3*HOURS+5e5,"Your request is logged as TKT-008. We will update you shortly.")],
+      attachments:[{name:"ceiling-crack.jpg",by:"bhavani"}]}),
+    T("TKT-007","PRJ-001","bhavani","Quartz countertop stain near hob","Yellowish stain on the quartz, won't come off.","Countertop / Stone","P4","Resolved","arun",n-50*HOURS,{
+      assignedAt:n-46*HOURS,resolvedAt:n-6*HOURS,serviceType:"Chargeable service",warrantyDecision:"NonWarranty",
+      exclusionReason:"Abrasive or inappropriate chemicals",estimate:"₹1,800 (polish + sealant) — approved",
+      timeline:[ev("system","",n-50*HOURS,"Ticket created via portal."),
+        ev("system","meera",n-46*HOURS,"Triage — Countertop / Stone, P4. Assigned to Arun for inspection (D2)."),
+        ev("internal","arun",n-40*HOURS,"Heat + chemical staining. Quartz is stain-resistant, not stain-proof. Non-warranty."),
+        ev("system","arun",n-39*HOURS,"Warranty decision: NON-WARRANTY — chemicals (D1.9). Estimate ₹1,800."),
+        ev("public","bhavani",n-30*HOURS,"Approved, please go ahead."),
+        ev("public","arun",n-7*HOURS,"Work completed: polished and re-sealed. Please confirm if all OK."),
+        ev("system","arun",n-6*HOURS,"Status: In Progress → Resolved")],
+      attachments:[{name:"stain-before.jpg",by:"bhavani"},{name:"polished-after.jpg",by:"arun"}],
+      resolution:{issue:"Yellow staining on quartz near hob.",rootCause:"Heat + chemical contact (Annexure B disclosure).",action:"Machine polish and re-seal of affected area.",parts:"Polish compound, sealant",prevention:"Use trivets; avoid harsh chemicals; care card shared."}}),
+    T("TKT-006","PRJ-003","bhavani","Wardrobe laminate peeling at edges","Edge banding lifting on two shutters in kids' room.","Wardrobe","P3","Assigned","kiran",n-46*HOURS,{
+      assignedAt:n-43*HOURS,serviceType:"Warranty claim",warrantyDecision:"Hold",
+      timeline:[ev("system","",n-46*HOURS,"Ticket created via portal."),
+        ev("system","meera",n-43*HOURS,"Triage — Wardrobe, P3, Warranty claim. Assigned to Kiran."),
+        ev("system","meera",n-43*HOURS,"Warranty decision: ON HOLD — pending dues (§15.3)."),
+        ev("public","meera",n-41*HOURS,"There is a pending payment on this project — warranty service resumes once dues are cleared (§15.3).")],
+      attachments:[{name:"edge-peel.jpg",by:"bhavani"}]}),
+    T("TKT-005","PRJ-002","sharma","Kitchen tall unit shutter dropped","Shutter sagging; adjusted last week but dropped again.","Modular Kitchen","P3","Closed","kiran",n-10*DAY,{
+      assignedAt:n-10*DAY+2*HOURS,resolvedAt:n-9*DAY,closedAt:n-2*DAY,reopenCount:1,
+      serviceType:"Warranty claim",warrantyDecision:"Covered",
+      timeline:[ev("system","",n-10*DAY,"Ticket created via portal."),
+        ev("system","meera",n-10*DAY+2*HOURS,"Triage — Modular Kitchen, P3, Warranty claim. Assigned to Kiran."),
+        ev("public","kiran",n-9*DAY,"Work completed: hinge plates re-seated. Please confirm if all OK."),
+        ev("system","sharma",n-8*DAY,"Client reopened: shutter dropped again. reopen_count = 1."),
+        ev("internal","kiran",n-7*DAY,"Carcass screw holes worn — inserts fitted; hinges replaced under warranty."),
+        ev("public","meera",n-2*DAY,"Closing TKT-005. You may reopen within 7 days if the issue repeats."),
+        ev("system","meera",n-2*DAY,"Status: Resolved → Closed. Replaced hinges carry remaining original warranty only (§15.7).")],
+      attachments:[{name:"shutter-sag.jpg",by:"sharma"},{name:"fixed-after.jpg",by:"kiran"}],
+      resolution:{issue:"Tall unit shutter sagging repeatedly.",rootCause:"Worn screw holes; hinges fatigued.",action:"Hinges replaced under warranty; inserts fitted; load tested.",parts:"2x hinges, inserts",prevention:"Check screw engagement at install QC."}}),
+    T("TKT-004","PRJ-001","anita","Quarterly free service visit — full home check","Routine alignment/adjustment: all shutters and drawers.","Other Modular Unit","P4","Closed","arun",n-45*DAY,{
+      assignedAt:n-44*DAY,resolvedAt:n-43*DAY,closedAt:n-42*DAY,
+      serviceType:"Free service visit (quarterly)",warrantyDecision:"Covered",
+      timeline:[ev("system","",n-45*DAY,"Free quarterly visit booked (1 of 4 — §15.4)."),
+        ev("public","arun",n-43*DAY,"All shutters and drawers aligned and lubricated."),
+        ev("system","meera",n-42*DAY,"Status: Resolved → Closed.")],
+      attachments:[{name:"visit-checklist.pdf",by:"arun"}],
+      resolution:{issue:"Routine quarterly service.",rootCause:"—",action:"Alignment + lubrication; no defects found.",parts:"None",prevention:"Next visit next quarter."}}),
+    T("TKT-003","PRJ-002","sharma","Pendant light flickering over dining","Flickers intermittently in the evening.","Electrical & Lighting","P3","Closed","arun",n-75*DAY,{
+      assignedAt:n-74*DAY,resolvedAt:n-73*DAY,closedAt:n-72*DAY,serviceType:"Warranty claim",warrantyDecision:"Covered",
+      timeline:[ev("system","",n-75*DAY,"Ticket created via portal."),ev("public","arun",n-73*DAY,"Driver replaced; flicker resolved."),ev("system","meera",n-72*DAY,"Closed.")],
+      attachments:[{name:"fix.jpg",by:"arun"}],
+      resolution:{issue:"Flickering pendant.",rootCause:"Faulty LED driver.",action:"Driver replaced.",parts:"LED driver",prevention:"—"}}),
+    T("TKT-002","PRJ-001","bhavani","Wardrobe shutter alignment","Minor gap between shutters.","Wardrobe","P4","Closed","kiran",n-80*DAY,{
+      assignedAt:n-79*DAY,resolvedAt:n-78*DAY,closedAt:n-77*DAY,serviceType:"Warranty claim",warrantyDecision:"Covered",
+      timeline:[ev("system","",n-80*DAY,"Ticket created via portal."),ev("public","kiran",n-78*DAY,"Hinges adjusted; aligned."),ev("system","meera",n-77*DAY,"Closed.")],
+      attachments:[{name:"aligned.jpg",by:"kiran"}],
+      resolution:{issue:"Shutter gap.",rootCause:"Hinge settling.",action:"Adjusted hinges.",parts:"None",prevention:"—"}}),
+    T("TKT-001","PRJ-002","sharma","Touch-up paint mismatch","Patch near TV unit looks different.","Painting / Touch-up","P4","Closed","arun",n-100*DAY,{
+      assignedAt:n-99*DAY,resolvedAt:n-96*DAY,closedAt:n-95*DAY,serviceType:"Chargeable service",warrantyDecision:"NonWarranty",
+      exclusionReason:"Third-party damage (painters, movers, pets) after installation",estimate:"₹2,400",
+      timeline:[ev("system","",n-100*DAY,"Ticket created via portal."),ev("public","arun",n-96*DAY,"Panel repainted edge-to-edge."),ev("system","meera",n-95*DAY,"Closed.")],
+      attachments:[{name:"wall.jpg",by:"arun"}],
+      resolution:{issue:"Paint mismatch.",rootCause:"Touch-up by client's painter with wrong shade.",action:"Full panel repaint.",parts:"1L emulsion",prevention:"Record shade codes."}}),
+  ];
+  return {users:defaultUsers(),clients:defaultClients(),projects,tickets,
+    categories:defaultCategories(),rules:defaultRules(),cfg:defaultCfg(),
+    modules:defaultModules(),workflows:defaultWorkflows(),vars:defaultVars(),records:{},
+    seq:11,viewer:"admin",tab:"dashboard",tview:"list",adminTab:"users",openTicket:null,filters:{}};
+}
+
+function mk(id,projCode,clientId,title,desc,cat,pri,status,owner,createdAt){
+  return {id,projCode,clientId,title,desc,cat,pri,status,owner,createdAt,
+    assignedAt:null,resolvedAt:null,closedAt:null,reopenCount:0,designInput:false,
+    serviceType:null,warrantyDecision:"Pending",exclusionReason:null,estimate:null,
+    timeline:[],attachments:[],resolution:null,breachLog:[],accessWindow:"",
+    approvals:[],custom:{},_wf:{},mapped:true,siteInfo:"",phone:""};
+}
+function normPhone(p){return String(p||"").replace(/[^0-9]/g,"").replace(/^0+/,"").slice(-10)}
+function findClientByPhone(phone){
+  const n=normPhone(phone);if(!n)return null;
+  return state.clients.find(c=>normPhone(c.phone)===n)||null;
+}
+function ev(type,by,time,text){return {type,by,time,text}}
+function save(){try{localStorage.setItem("aftercare_v6",JSON.stringify(state))}catch(e){}}
+function load(){try{const s=localStorage.getItem("aftercare_v6");if(!s)return null;const st=JSON.parse(s);
+  if(!st.modules||!st.vars||!st.workflows)return null;
+  st.cfg=Object.assign(defaultCfg(),st.cfg);st.cfg.labels=Object.assign({},DEFAULT_LABELS,st.cfg.labels);
+  st.records=st.records||{};return st}catch(e){return null}}
+function resetDemo(){try{localStorage.removeItem("aftercare_v6")}catch(e){};state=seed();applyTheme();render()}
+
+/* ================= WORKFLOW ENGINE ================= */
+function module_(id){return state.modules.find(m=>m.id===id)}
+function wfFieldVal(t,f){return {priority:t.pri,status:t.status,category:t.cat,warrantyDecision:t.warrantyDecision,serviceType:t.serviceType,projectCode:t.projCode}[f]}
+function wfMatch(v,op,val){v=String(v??"");val=String(val??"");
+  if(op==="equals")return v===val;if(op==="not")return v!==val;
+  return v.toLowerCase().includes(val.toLowerCase())}
+function runWorkflows(trigger,t){
+  (state.workflows||[]).filter(w=>w.active&&w.module==="complaints"&&w.trigger===trigger).forEach(w=>{
+    if(w.cond&&w.cond.field&&!wfMatch(wfFieldVal(t,w.cond.field),w.cond.op,w.cond.value))return;
+    t._wf=t._wf||{};const fk=w.id+"_"+trigger;if(t._wf[fk])return;t._wf[fk]=1;
+    const a=w.action;
+    if(a.type==="approval"){t.approvals=t.approvals||[];
+      t.approvals.push({name:w.name,role:a.param,status:"pending",at:now()});
+      t.timeline.push(ev("system","",now(),"⏳ Approval required (workflow: "+w.name+") — awaiting "+(ROLES[a.param]||a.param)+"."));}
+    if(a.type==="assign"){t.owner=a.param;t.timeline.push(ev("system","",now(),"Workflow auto-assigned to "+uname(a.param)+" ("+w.name+")."));}
+    if(a.type==="setPriority"){t.pri=a.param;t.timeline.push(ev("system","",now(),"Workflow set priority to "+a.param+" ("+w.name+")."));}
+    if(a.type==="notify"){t.timeline.push(ev("internal","",now(),"🔔 Workflow notification: "+a.param));}
+    if(a.type==="escalate"){t.timeline.push(ev("system","",now(),"⬆ Escalated to leadership per workflow: "+w.name+"."));}
+  });save();
+}
+function slaSweep(){
+  if(me().role==="client")return;
+  state.tickets.forEach(t=>{
+    if(t.status==="Closed"||t.resolvedAt)return;
+    const p=slaInfo(t).pct;
+    if(p>=70)runWorkflows("sla70",t);
+    if(p>=90)runWorkflows("sla90",t);
+    if(p>=100)runWorkflows("sla100",t);
+  });
+}
+function approve(tid,i,ok){
+  const t=state.tickets.find(x=>x.id===tid);const a=t.approvals[i];
+  a.status=ok?"approved":"rejected";a.by=state.viewer;a.decidedAt=now();
+  addEvent(t,"system","Approval "+(ok?"GRANTED":"REJECTED")+": "+a.name+" — by "+uname(state.viewer)+".");
+  render();
+}
+function pendingApprovals(t){return (t.approvals||[]).filter(a=>a.status==="pending")}
+
+/* ===== custom field rendering ===== */
+function cfInput(f,val,oc){
+  const v=esc(val??"");
+  if(f.type==="textarea")return `<textarea ${oc}>${v}</textarea>`;
+  if(f.type==="select")return `<select ${oc}><option value=""></option>${(f.options||[]).map(o=>`<option ${val===o?"selected":""}>${esc(o)}</option>`).join("")}</select>`;
+  if(f.type==="checkbox")return `<input type="checkbox" ${val?"checked":""} ${oc.replace("this.value","this.checked")}>`;
+  if(f.type==="number"||f.type==="currency")return `<input type="number" value="${v}" ${oc}>`;
+  if(f.type==="date")return `<input type="date" value="${v}" ${oc}>`;
+  return `<input type="${f.type==="email"?"email":f.type==="phone"?"tel":"text"}" value="${v}" ${oc}>`;
+}
+
+/* ================= THEME ================= */
+function applyTheme(){
+  const c=state.cfg,t=THEMES[c.theme]||THEMES["Black & White"];
+  const r=document.documentElement.style;
+  r.setProperty("--acc",t.acc);r.setProperty("--acc-deep",t.deep);r.setProperty("--acc-soft",t.soft);r.setProperty("--side",t.side);
+  r.setProperty("--fs",(c.fontSize||8)+"px");
+  document.title=c.appName+" — "+c.tagline;
+}
+
+/* ================= ENGINES ================= */
+function slaInfo(t){
+  const limit=(getVar('sla.'+t.pri)||48)*HOURS,end=t.resolvedAt||now(),used=end-t.createdAt;
+  const pct=Math.min(150,Math.round(used/limit*100));
+  return {pct,remaining:limit-used,zone:pct>=100?"breach":pct>=90?"crit":pct>=70?"warn":"ok",
+    done:!!t.resolvedAt,met:!!t.resolvedAt&&used<=limit,limitH:getVar('sla.'+t.pri)||48};
+}
+function fmtDur(ms){const neg=ms<0;ms=Math.abs(ms);const d=Math.floor(ms/DAY),h=Math.floor(ms%DAY/HOURS),m=Math.floor(ms%HOURS/6e4);
+  return (neg?"-":"")+(d>0?d+"d "+h+"h":h>0?h+"h "+m+"m":m+"m")}
+function fmtDT(ts){return new Date(ts).toLocaleString([],{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}
+function fmtD(ts){return new Date(ts).toLocaleDateString([],{day:"2-digit",month:"short",year:"numeric"})}
+function monthsSince(ts){return (now()-ts)/(30*DAY)}
+
+function warrantyPanel(code,cat){
+  const p=projByCode(code);
+  if(!p)return {hold:false,html:'<div class="hint">Unknown project.</div>'};
+  const def=catDef(cat),cov=COV_TPL[def.tpl]||COV_TPL["As-is / no warranty"];
+  const w=p.warranty||defaultWarranty();
+  const m=monthsSince(p.handover);
+  let rows="",hold=false;
+  if(!p.duesCleared){hold=true;rows+=`<div class="w-line"><span>⚠ Pending dues on this project</span><span class="no">WARRANTY ON HOLD (§15.3)</span></div>`;}
+  cov.forEach(([item,key,type])=>{
+    let st;
+    if(type==="OEM")st='<span class="oem">OEM / BRAND</span>';
+    else if(type==="ASIS")st='<span class="no">AS-IS / NO WARRANTY</span>';
+    else if(type==="NONE")st='<span class="no">NOT COVERED</span>';
+    else{const months=w[key]||0;st=m<=months?`<span class="ok">ACTIVE — ${Math.max(0,Math.floor(months-m))} mo left</span>`:'<span class="no">EXPIRED</span>';
+      item+=` <span class="hint" style="display:inline">(${months>=12&&months%12===0?months/12+" yr":months+" mo"})</span>`;}
+    rows+=`<div class="w-line"><span>${item}</span>${st}</div>`;
+  });
+  const FV=getVar('freeVisits');
+  rows+=`<div class="w-line"><span>Free quarterly service visits (§15.4)</span><span class="${p.freeVisitsUsed<FV&&m<=12?"ok":"no"}">${m<=12?p.freeVisitsUsed+"/"+FV+" used":"window over (first 12 months)"}</span></div>`;
+  const head=`<div class="w-line" style="border-bottom:1px solid var(--line)"><span><b>Handover:</b> ${fmtD(p.handover)} (${m.toFixed(1)} mo ago)</span><span><b>Dues:</b> ${p.duesCleared?'<span class="ok">cleared</span>':'<span class="no">PENDING</span>'}</span></div>`;
+  const note=def.note?`<div class="hint" style="margin-top:.6em">📋 ${def.note}</div>`:"";
+  const w15=m*30<=getVar('visibleDefectDays')?`<div class="hint" style="color:var(--ok)">Within ${getVar('visibleDefectDays')}-day visible-defect reporting window (D2.3).</div>`:"";
+  return {hold,html:`<div class="w-panel">${head}${rows}${note}${w15}</div>`};
+}
+const W_LABEL={Covered:"Covered",NonWarranty:"Chargeable",OEM:"OEM referred",Pending:"Pending inspection",Hold:"On hold — dues"};
+const W_BADGE={Covered:"b-w-Covered",NonWarranty:"b-w-NonWarranty",OEM:"b-w-OEM",Pending:"b-w-Pending",Hold:"b-w-Hold"};
+
+/* ================= VIEWER / PERMISSIONS ================= */
+function me(){
+  const u=state.users.find(u=>u.id===state.viewer);
+  if(u)return u;
+  const c=state.clients.find(c=>c.id===state.viewer);
+  return c?Object.assign({role:"client"},c):state.users[0];
+}
+function isStaffAdmin(){return ["superadmin","opshead","manager"].includes(me().role)}
+function visibleTickets(){
+  const u=me();
+  if(u.role==="client"){
+    const myProj=state.projects.filter(p=>(p.clients||[]).includes(u.id)).map(p=>p.code);
+    return state.tickets.filter(t=>t.clientId===u.id||myProj.includes(t.projCode));
+  }
+  if(u.role==="engineer")return state.tickets.filter(t=>t.owner===u.id);
+  if(u.role==="designer")return state.tickets.filter(t=>t.designInput);
+  return state.tickets;
+}
+function visibleTimeline(t){return me().role==="client"?t.timeline.filter(e=>e.type!=="internal"):t.timeline}
+/* ================= ACTIONS ================= */
+function addEvent(t,type,text){t.timeline.push(ev(type,state.viewer,now(),text));save()}
+
+function createTicket(f){
+  const id="TKT-"+String(state.seq++).padStart(3,"0");
+  const u=me();
+  const clientId=u.role==="client"?u.id:f.clientId;
+  const t=mk(id,"",clientId||"",f.title,f.desc,f.cat||"Other","P3","New",null,now());
+  t.accessWindow=f.access||"";
+  t.siteInfo=f.site||"";
+  t.projText=f.projText||"";
+  t.phone=f.phone||"";
+  t.mapped=false;
+  const phoneMatch=t.phone?findClientByPhone(t.phone):null;
+  t.timeline.push(ev("system","",now(),"Awaiting agent mapping — to be linked to the correct "+L("project").toLowerCase()+" and "+L("client").toLowerCase()+" record from the master database."+(phoneMatch?" Phone number matches existing "+L("client").toLowerCase()+" record: "+phoneMatch.name+".":t.phone?" No "+L("client").toLowerCase()+" record matches this phone number yet.":"")));
+  if(f.attName)t.attachments.push({name:f.attName,by:state.viewer,data:f.attData||null});
+  t.timeline.push(ev("system","",now(),u.role==="client"?"Ticket created via portal (official channel per Annexure H1).":"Ticket logged internally by "+uname(state.viewer)+" (intake: "+f.channel+")."));
+  t.timeline.push(ev("public",u.role==="client"?"meera":state.viewer,now(),"Your request is logged as "+id+". We will update you shortly."));
+  if(f.custom)t.custom=f.custom;
+  runWorkflows("create",t);
+  state.tickets.unshift(t);save();
+  closeModal();
+  state.tab="tickets";state.openTicket=id;render();
+}
+function triage(t,cat,pri,owner,svc,nextUpdate){
+  t.cat=cat;t.pri=pri;t.owner=owner;t.serviceType=svc;t.status="Assigned";t.assignedAt=now();
+  const p=projByCode(t.projCode);
+  if(p&&!p.duesCleared){t.warrantyDecision="Hold";
+    addEvent(t,"system","Warranty decision: ON HOLD — pending dues on project (§15.3).");}
+  if(svc==="Free service visit (quarterly)"&&p){
+    p.freeVisitsUsed=Math.min(getVar('freeVisits'),(p.freeVisitsUsed||0)+1);
+    addEvent(t,"system","Free quarterly visit booked — "+p.freeVisitsUsed+"/"+getVar('freeVisits')+" used (§15.4). Parts, if any, chargeable.");}
+  addEvent(t,"system","Triage — "+L("category")+": "+cat+", "+L("priority")+": "+pri+", Type: "+svc+". Assigned to "+uname(owner)+".");
+  addEvent(t,"public","Assigned to "+uname(owner)+". Next update by "+(nextUpdate||"end of day")+".");
+  runWorkflows("triage",t);
+  render();
+}
+function setWarrantyDecision(t,decision,exclusion,estimate){
+  t.warrantyDecision=decision;t.exclusionReason=exclusion||null;t.estimate=estimate||null;
+  if(decision==="Covered")addEvent(t,"system","Warranty decision: COVERED — repair/replacement at no charge. Replaced parts carry remaining original term only (§15.7).");
+  if(decision==="OEM")addEvent(t,"system","Warranty decision: OEM REFERRED — we coordinate the brand claim; acceptance lies with OEM (C-II).");
+  if(decision==="NonWarranty"){
+    addEvent(t,"system","Warranty decision: NON-WARRANTY — exclusion: "+exclusion+" (Annexure D1)."+(estimate?" Estimate: "+estimate:""));
+    addEvent(t,"public","Inspection complete. This issue falls outside warranty (Annexure D: "+exclusion+")."+(estimate?" We can fix it for "+estimate+" — please confirm to proceed.":" A service estimate will follow."));}
+  runWorkflows("warranty",t);
+  closeModal();render();
+}
+function startWork(t,note){
+  t.status="InProgress";
+  addEvent(t,"system","Status: Assigned → In Progress");
+  if(note)addEvent(t,"internal","Inspection/start note — "+note);
+  render();
+}
+function resolveTicket(t,r){
+  t.resolution=r;t.status="Resolved";t.resolvedAt=now();
+  addEvent(t,"public","Work completed: "+r.action.slice(0,140)+" Please confirm if all OK.");
+  addEvent(t,"system","Status: In Progress → Resolved");
+  runWorkflows("resolve",t);
+  closeModal();render();
+}
+function closeTicket(t){
+  t.status="Closed";t.closedAt=now();
+  addEvent(t,"public","Closing "+t.id+". You may reopen within "+getVar('reopenDays')+" days if the issue repeats.");
+  addEvent(t,"system","Status: Resolved → Closed. QC checklist passed.");
+  closeModal();render();
+}
+function reopenTicket(t,reason){
+  t.reopenCount=(t.reopenCount||0)+1;
+  t.status="Assigned";t.resolvedAt=null;t.closedAt=null;t.assignedAt=now();t.createdAt=now();
+  addEvent(t,"system","Client reopened: "+reason+". reopen_count = "+t.reopenCount+".");
+  if(t.reopenCount>=2)addEvent(t,"system","⚠ reopen_count ≥ 2 — mandatory L3 review and CAPA.");
+  if(t.owner)addEvent(t,"system","Reassigned to "+uname(t.owner)+" (same owner per reopen policy).");
+  closeModal();render();
+}
+function logBreach(t,reason,nextAction,committed){
+  t.breachLog.push({time:now(),reason,nextAction,committed});
+  addEvent(t,"internal","SLA breach documented — Reason: "+reason+". Next action: "+nextAction+" (committed: "+committed+").");
+  addEvent(t,"public","We need a little more time. Revised plan: "+nextAction+" — committed by "+committed+". Apologies for the delay.");
+  closeModal();render();
+}
+function addComment(t,text,type){if(!text.trim())return;addEvent(t,type,text.trim());render()}
+function toggleDesign(t){
+  t.designInput=!t.designInput;
+  addEvent(t,"system",t.designInput?"Tagged: design input required (Designer responds within 4 working hours).":"Design input tag removed.");
+  render();
+}
+function attachFile(t,input){
+  const f=input.files[0];if(!f)return;
+  const fin=(data)=>{t.attachments.push({name:f.name,by:state.viewer,data});addEvent(t,"system","Attachment uploaded: "+f.name+" (by "+uname(state.viewer)+")");render()};
+  if(f.type.startsWith("image/")&&f.size<2e6){const r=new FileReader();r.onload=e=>fin(e.target.result);r.readAsDataURL(f)}
+  else fin(null);
+}
+function setProjCode(t,code){
+  const p=projByCode(code.trim());
+  if(!p){alert("No project with code "+code+". Check the Control Panel → Projects.");render();return}
+  const old=t.projCode;t.projCode=p.code;
+  addEvent(t,"system",L("projectCode")+" changed: "+old+" → "+p.code+" ("+p.name+") by "+uname(state.viewer)+".");
+  render();
+}
+
+/* ================= NAV / SHELL ================= */
+function switchViewer(id){state.viewer=id;const r=me().role;
+  state.tab=r==="client"?"tickets":(r==="engineer"||r==="designer")?"tickets":"dashboard";
+  state.openTicket=null;state.filters={};save();render()}
+function go(tab){state.tab=tab;state.openTicket=null;render();window.scrollTo(0,0);document.getElementById("side").classList.remove("open")}
+function goAdmin(sub){state.tab="admin";state.adminTab=sub;render();document.getElementById("side").classList.remove("open")}
+function goTickets(filters){state.filters=filters||{};state.tab="tickets";state.openTicket=null;render();window.scrollTo(0,0)}
+function setTView(v){state.tview=v;render()}
+function openT(id){state.openTicket=id;state.tab="tickets";render();window.scrollTo(0,0)}
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+function render(){
+  const c=state.cfg,r=me().role;
+  slaSweep();
+  const nav=[];
+  if(isStaffAdmin())nav.push({k:"dashboard",icon:"◧",l:L("dashboard")});
+  nav.push({k:"tickets",icon:"☰",l:L("tickets")});
+  if(r==="client")nav.push({k:"warranty",icon:"✓",l:L("myWarranty")});
+  if(r==="client"||isStaffAdmin())nav.push({k:"new",icon:"＋",l:L("newTicket")});
+  nav.push({k:"sop",icon:"§",l:L("rules")});
+  const customMods=state.modules.filter(m=>!m.core);
+  let modNav="";
+  if(r!=="client"&&customMods.length)
+    modNav=`<div class="sec">Modules</div>`+customMods.map(m=>`<button class="${state.tab==="mod_"+m.id?"act":""}" onclick="go('mod_${m.id}')"><span>▣</span> ${esc(m.name)}</button>`).join("");
+  let adminNav="";
+  if(r==="superadmin"){
+    const subs=[["users",L("users")],["clients",L("clients")],["projects",L("project")+"s"],["categories",L("category")+" Master"],["modules","Modules & Fields"],["workflows","Workflows"],["variables","Variables"],["appearance","Appearance"]];
+    adminNav=`<div class="sec">⚙ ${L("admin")}</div>`+subs.map(([k,l])=>`<button class="sub ${state.tab==="admin"&&state.adminTab===k?"act":""}" onclick="goAdmin('${k}')">${l}</button>`).join("");
+  }
+  const allViewers=[...users().map(u=>({id:u.id,nm:u.name+" — "+ROLES[u.role]})),...state.clients.map(c2=>({id:c2.id,nm:c2.name+" — Client"}))];
+  const meu=me();
+  const maskMail=(e)=>e?e.replace(/^(.).*(@.*)$/,(m,a,b)=>a+"XXXXXXXXX"+b):"—";
+  const maskPhone=(p)=>p?("XXXXXX"+String(p).slice(-4)):"—";
+  document.getElementById("ubDate").textContent=new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+  const initials=(meu.name||"U").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  document.getElementById("ubProfile").innerHTML=`
+    <button class="ub-avatar" onclick="toggleProfileMenu(event)">${esc(initials)}</button>
+    <div class="ub-menu${state.profileMenuOpen?" open":""}" id="ubMenu">
+      <div class="ub-menu-welcome">WELCOME</div>
+      <div class="ub-menu-name">${esc(meu.name||"User")}</div>
+      <div class="ub-menu-row">Last Login: ${fmtDT(now())}</div>
+      <div class="ub-menu-row">Email: ${esc(maskMail(meu.email))}</div>
+      <div class="ub-menu-row">Mobile: ${esc(maskPhone(meu.phone))}</div>
+      <button class="ub-menu-link" onclick="go('profile')">👤 My Profile</button>
+    </div>`;
+  document.getElementById("side").innerHTML=`
+    <div class="brand"><div class="mono">${esc(c.monogram||"S")}</div><div><div class="nm">${esc(c.appName)}</div><div class="tg">${esc(c.tagline)}</div></div></div>
+    <div class="snav">
+      <div class="sec">Menu</div>
+      ${nav.map(n=>`<button class="${state.tab===n.k?"act":""}" onclick="go('${n.k}')"><span>${n.icon}</span> ${n.l}</button>`).join("")}
+      ${modNav}
+      ${adminNav}
+    </div>
+    <div class="viewer"><label>View as</label>
+      <select onchange="switchViewer(this.value)">${allViewers.map(v=>`<option value="${v.id}" ${v.id===state.viewer?"selected":""}>${esc(v.nm)}</option>`).join("")}</select>
+    </div>`;
+  document.getElementById("tbBrand").textContent=c.appName+" · "+c.tagline;
+  const v=document.getElementById("view");
+  if(state.tab==="tickets"&&state.openTicket)v.innerHTML=detailView(state.tickets.find(t=>t.id===state.openTicket));
+  else if(state.tab==="dashboard")v.innerHTML=dashboardView();
+  else if(state.tab==="tickets")v.innerHTML=listShell();
+  else if(state.tab==="warranty")v.innerHTML=warrantyView();
+  else if(state.tab==="new")v.innerHTML=newTicketView();
+  else if(state.tab==="sop")v.innerHTML=rulesView();
+  else if(state.tab==="profile")v.innerHTML=profileView();
+  else if(state.tab.startsWith("mod_"))v.innerHTML=moduleRecordsView(state.tab.slice(4));
+  else if(state.tab==="admin")v.innerHTML=me().role==="superadmin"?adminView():`<div class="empty">Super Admin access required.</div>`;
+  save();
+}
+function toggleProfileMenu(e){
+  if(e)e.stopPropagation();
+  state.profileMenuOpen=!state.profileMenuOpen;
+  const m=document.getElementById("ubMenu");
+  if(m)m.classList.toggle("open",state.profileMenuOpen);
+}
+document.addEventListener("click",function(e){
+  if(state.profileMenuOpen){state.profileMenuOpen=false;const m=document.getElementById("ubMenu");if(m)m.classList.remove("open")}
+});
+function profileView(){
+  const meu=me();
+  const maskMail=(e)=>e?e.replace(/^(.).*(@.*)$/,(m,a,b)=>a+"XXXXXXXXX"+b):"—";
+  const maskPhone=(p)=>p?("XXXXXX"+String(p).slice(-4)):"—";
+  return `
+  <div class="pagehead"><h2>My Profile</h2></div>
+  <div class="card" style="max-width:32em">
+    <div style="display:flex;align-items:center;gap:1em;margin-bottom:1em">
+      <div class="mono" style="width:3.4em;height:3.4em;font-size:1.3em">${esc((meu.name||"U").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase())}</div>
+      <div><div style="font-weight:700;font-size:1.2em">${esc(meu.name||"User")}</div><div style="color:var(--muted)">${esc(ROLES[meu.role]||meu.role||"")}</div></div>
+    </div>
+    <div class="w-line"><span>Last Login</span><span>${fmtDT(now())}</span></div>
+    <div class="w-line"><span>Email</span><span>${esc(maskMail(meu.email))}</span></div>
+    <div class="w-line"><span>Mobile</span><span>${esc(maskPhone(meu.phone))}</span></div>
+    <div class="w-line"><span>Role</span><span>${esc(ROLES[meu.role]||meu.role||"—")}</span></div>
+  </div>`;
+}
+
+/* ================= DASHBOARD (interactive, drill-down) ================= */
+function bars(entries,max,clickFn){
+  return entries.map(([k,c])=>`<div class="chart-row" onclick="${clickFn(k)}" title="View these ${L("tickets").toLowerCase()}"><span class="nm">${esc(k)}</span><span class="bar"><i style="width:${c/max*100}%"></i></span><span class="ct">${c}</span></div>`).join("")||`<div class="empty">No data.</div>`;
+}
+function dashboardView(){
+  const ts=state.tickets;
+  const open=ts.filter(t=>t.status!=="Closed");
+  const closed=ts.filter(t=>t.status==="Closed");
+  const breachedOpen=open.filter(t=>!t.resolvedAt&&slaInfo(t).zone==="breach");
+  const breachedAll=ts.filter(t=>slaInfo(t).done?!slaInfo(t).met:slaInfo(t).zone==="breach");
+  const resolved=ts.filter(t=>t.resolvedAt);
+  const avgRes=resolved.length?fmtDur(resolved.reduce((a,t)=>a+(t.resolvedAt-t.createdAt),0)/resolved.length):"—";
+  const compliance=resolved.length?Math.round(resolved.filter(t=>slaInfo(t).met).length/resolved.length*100):100;
+  /* groups */
+  const byCat={},byProj={},byOwner={};
+  ts.forEach(t=>{
+    byCat[t.cat]=(byCat[t.cat]||0)+1;
+    const p=projByCode(t.projCode);byProj[(p?p.code+" · "+p.name:t.projCode)]=(byProj[t.projCode]||0)+1;
+    if(t.owner)byOwner[uname(t.owner)]=(byOwner[uname(t.owner)]||0)+1;
+  });
+  const projEntries={} ;state.projects.forEach(p=>{const c=ts.filter(t=>t.projCode===p.code).length;if(c)projEntries[p.code]=c});
+  /* warranty vs paid */
+  const warrantyCnt=ts.filter(t=>["Covered","OEM","Hold"].includes(t.warrantyDecision)).length;
+  const paidCnt=ts.filter(t=>t.warrantyDecision==="NonWarranty").length;
+  const pendCnt=ts.filter(t=>t.warrantyDecision==="Pending").length;
+  /* repeats */
+  const repProj=state.projects.map(p=>({p,c:ts.filter(t=>t.projCode===p.code).length,re:ts.filter(t=>t.projCode===p.code&&t.reopenCount>0).length})).filter(x=>x.c>=2||x.re>0);
+  const repClient=state.clients.map(cl=>({cl,c:ts.filter(t=>t.clientId===cl.id).length})).filter(x=>x.c>=2);
+  /* monthly trend (last 6 months) */
+  const months=[];const d0=new Date();
+  for(let i=5;i>=0;i--){const d=new Date(d0.getFullYear(),d0.getMonth()-i,1);months.push({y:d.getFullYear(),m:d.getMonth(),lb:d.toLocaleDateString([], {month:"short"})});}
+  months.forEach(mo=>{mo.c=ts.filter(t=>{const td=new Date(t.createdAt);return td.getFullYear()===mo.y&&td.getMonth()===mo.m}).length});
+  const maxTrend=Math.max(...months.map(m=>m.c),1);
+  const maxCat=Math.max(...Object.values(byCat),1),maxProj=Math.max(...Object.values(projEntries),1),maxOwn=Math.max(...Object.values(byOwner),1);
+  const escal=open.filter(t=>!t.resolvedAt&&slaInfo(t).pct>=70).sort((a,b)=>slaInfo(b).pct-slaInfo(a).pct);
+  const ring=(pct,color,label,value,sub)=>{
+    const r=42,c=2*Math.PI*r,off=c*(1-Math.max(0,Math.min(100,pct))/100);
+    return `<div class="ring-card">
+      <svg class="ring-svg" width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--line)" stroke-width="10"/>
+        <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 50 50)"/>
+        <text x="50" y="54" text-anchor="middle" font-size="20" font-weight="700" fill="var(--ink)">${pct}%</text>
+      </svg>
+      <div><div class="ring-value">${value}</div><div class="ring-label">${label}</div><div class="ring-sub">${sub}</div></div>
+    </div>`;
+  };
+  const openPct=ts.length?Math.round(open.length/ts.length*100):0;
+  return `
+  <div class="pagehead"><h2>${L("dashboard")}</h2><span class="sub">Click any number or bar to drill down</span>
+    <div class="right"><button class="btn btn-ghost btn-sm" onclick="resetDemo()">↺ Reset demo</button></div></div>
+  <div class="ring-row">
+    ${ring(compliance,"var(--acc)","SLA compliance",compliance+"%",resolved.length+" resolved "+L("tickets").toLowerCase())}
+    ${ring(openPct,"var(--p2)","Open vs Total",open.length+" / "+ts.length,openPct+"% currently open")}
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi accent" onclick="goTickets({})"><div class="v"><b>${ts.length}</b></div><div class="l">Total ${L("tickets")} received</div></div>
+    <div class="kpi" onclick="goTickets({scope:'open'})"><div class="v"><b>${open.length}</b></div><div class="l">Open ${L("tickets")}</div></div>
+    <div class="kpi good" onclick="goTickets({scope:'closed'})"><div class="v"><b>${closed.length}</b></div><div class="l">Closed ${L("tickets")}</div></div>
+    <div class="kpi ${breachedAll.length?"alert":""}" onclick="goTickets({scope:'breached'})"><div class="v"><b>${breachedAll.length}</b></div><div class="l">SLA breached</div></div>
+    <div class="kpi"><div class="v"><b>${avgRes}</b></div><div class="l">Avg resolution time</div></div>
+    <div class="kpi ${compliance>=90?"good":"alert"}"><div class="v"><b>${compliance}%</b></div><div class="l">SLA compliance</div></div>
+    <div class="kpi" onclick="goTickets({wgroup:'warranty'})"><div class="v"><b>${warrantyCnt}</b></div><div class="l">${L("warranty")} ${L("tickets")}</div></div>
+    <div class="kpi" onclick="goTickets({wgroup:'paid'})"><div class="v"><b>${paidCnt}</b></div><div class="l">Paid / chargeable</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(24em,1fr));gap:1.4em">
+    <div class="card">
+      <div class="section-title" style="margin-top:0">Monthly ${L("ticket").toLowerCase()} trend</div>
+      <div class="trend">
+        ${months.map(mo=>`<div class="tcol" onclick="goTickets({month:'${mo.y}-${mo.m}'})"><b>${mo.c||""}</b><div class="tbar" style="height:${mo.c/maxTrend*8}em"></div><span class="tlb">${mo.lb}</span></div>`).join("")}
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">${L("warranty")} vs paid</div>
+      <div class="chart-row" onclick="goTickets({wgroup:'warranty'})"><span class="nm">${L("warranty")} (covered/OEM/hold)</span><span class="bar"><i style="width:${warrantyCnt/Math.max(ts.length,1)*100}%"></i></span><span class="ct">${warrantyCnt}</span></div>
+      <div class="chart-row" onclick="goTickets({wgroup:'paid'})"><span class="nm">Paid / chargeable</span><span class="bar"><i style="width:${paidCnt/Math.max(ts.length,1)*100}%;background:var(--warn)"></i></span><span class="ct">${paidCnt}</span></div>
+      <div class="chart-row" onclick="goTickets({wgroup:'pending'})"><span class="nm">Pending inspection</span><span class="bar"><i style="width:${pendCnt/Math.max(ts.length,1)*100}%;background:#b6bbc2"></i></span><span class="ct">${pendCnt}</span></div>
+      <div class="section-title">${L("tickets")} by ${L("status").toLowerCase()}</div>
+      ${["New","Assigned","InProgress","Resolved","Closed"].map(s=>{const c=ts.filter(t=>t.status===s).length;return `<div class="chart-row" onclick="goTickets({status:'${s}'})"><span class="nm">${s==="InProgress"?"In Progress":s}</span><span class="bar"><i style="width:${c/Math.max(ts.length,1)*100}%"></i></span><span class="ct">${c}</span></div>`}).join("")}
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">${L("tickets")} by ${L("category").toLowerCase()}</div>
+      ${bars(Object.entries(byCat).sort((a,b)=>b[1]-a[1]),maxCat,k=>`goTickets({cat:'${esc(k)}'})`)}
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">${L("tickets")} by ${L("project").toLowerCase()}</div>
+      ${Object.entries(projEntries).sort((a,b)=>b[1]-a[1]).map(([code,c])=>{const p=projByCode(code);return `<div class="chart-row" onclick="goTickets({proj:'${code}'})"><span class="nm">${code} · ${esc(p?p.name:"")}</span><span class="bar"><i style="width:${c/maxProj*100}%"></i></span><span class="ct">${c}</span></div>`}).join("")}
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">${L("tickets")} by ${L("owner").toLowerCase()}</div>
+      ${engineers().map(e=>{const c=state.tickets.filter(t=>t.owner===e.id).length;return `<div class="chart-row" onclick="goTickets({owner:'${e.id}'})"><span class="nm">${esc(e.name)}</span><span class="bar"><i style="width:${c/maxOwn*100}%"></i></span><span class="ct">${c}</span></div>`}).join("")}
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0">Repeat ${L("tickets").toLowerCase()} — ${L("client").toLowerCase()} / ${L("project").toLowerCase()}</div>
+      ${repProj.map(x=>`<div class="chart-row" onclick="goTickets({proj:'${x.p.code}'})"><span class="nm">${x.p.code} · ${esc(x.p.name)}</span><span class="bar"><i style="width:${x.c/Math.max(maxProj,1)*100}%;background:${x.re?"var(--crit)":"var(--acc)"}"></i></span><span class="ct">${x.c}${x.re?` <span style="color:var(--crit)">↺${x.re}</span>`:""}</span></div>`).join("")||'<div class="empty">No repeats.</div>'}
+      ${repClient.map(x=>`<div class="chart-row" onclick="goTickets({client:'${x.cl.id}'})"><span class="nm">👤 ${esc(x.cl.name)}</span><span class="bar"><i style="width:${x.c/Math.max(maxProj,1)*100}%;background:var(--warn)"></i></span><span class="ct">${x.c}</span></div>`).join("")}
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title" style="margin-top:0">Escalation queue — L1 ≥70% · L2 ≥90% · L3 breach</div>
+    ${escal.length?escal.map(rowHTML).join(""):`<div class="empty">Nothing past 70% of SLA. All clear.</div>`}
+  </div>`;
+}
+/* ================= TICKETS: LIST / KANBAN / TABLE ================= */
+function applyFilters(ts){
+  const f=state.filters||{};
+  if(f.scope==="open")ts=ts.filter(t=>t.status!=="Closed");
+  if(f.scope==="closed")ts=ts.filter(t=>t.status==="Closed");
+  if(f.scope==="breached")ts=ts.filter(t=>slaInfo(t).done?!slaInfo(t).met:slaInfo(t).zone==="breach");
+  if(f.status)ts=ts.filter(t=>t.status===f.status);
+  if(f.pri)ts=ts.filter(t=>t.pri===f.pri);
+  if(f.cat)ts=ts.filter(t=>t.cat===f.cat);
+  if(f.proj)ts=ts.filter(t=>t.projCode===f.proj);
+  if(f.owner)ts=ts.filter(t=>t.owner===f.owner);
+  if(f.client)ts=ts.filter(t=>t.clientId===f.client);
+  if(f.wgroup==="warranty")ts=ts.filter(t=>["Covered","OEM","Hold"].includes(t.warrantyDecision));
+  if(f.wgroup==="paid")ts=ts.filter(t=>t.warrantyDecision==="NonWarranty");
+  if(f.wgroup==="pending")ts=ts.filter(t=>t.warrantyDecision==="Pending");
+  if(f.month){const [y,m]=f.month.split("-").map(Number);ts=ts.filter(t=>{const d=new Date(t.createdAt);return d.getFullYear()===y&&d.getMonth()===m})}
+  if(f.q)ts=ts.filter(t=>(t.title+t.id+t.projCode+t.desc).toLowerCase().includes(f.q.toLowerCase()));
+  return ts;
+}
+function filterChips(){
+  const f=state.filters||{};const chips=[];
+  const add=(key,label)=>chips.push(`<span class="chip">${label} <b onclick="delete state.filters['${key}'];render()">✕</b></span>`);
+  if(f.scope)add("scope",f.scope==="open"?"Open":f.scope==="closed"?"Closed":"SLA breached");
+  if(f.status)add("status",f.status);
+  if(f.cat)add("cat",f.cat);
+  if(f.proj)add("proj",f.proj);
+  if(f.owner)add("owner",uname(f.owner));
+  if(f.client)add("client",uname(f.client));
+  if(f.wgroup)add("wgroup",f.wgroup==="warranty"?L("warranty"):f.wgroup==="paid"?"Paid":"Pending inspection");
+  if(f.month)add("month","Month");
+  if(f.pri)add("pri",f.pri);
+  return chips.join("");
+}
+function listShell(){
+  const ts=applyFilters(visibleTickets());
+  const v=state.tview||"list";
+  return `
+  <div class="pagehead"><h2>${L("tickets")}</h2><span class="sub">${ts.length} shown</span>
+    <div class="right">
+      <div class="seg">
+        <button class="${v==="list"?"act":""}" onclick="setTView('list')">☰ List</button>
+        <button class="${v==="kanban"?"act":""}" onclick="setTView('kanban')">▦ Kanban</button>
+        <button class="${v==="table"?"act":""}" onclick="setTView('table')">▤ Table</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="window.open(location.pathname+location.search+'#webform','_blank')">🔗 Public webform</button>
+      <button class="btn btn-primary btn-sm" onclick="newComplaintModal()">＋ New complaint</button>
+    </div></div>
+  ${isStaffAdmin()?bulkBar("complaints","ticketsTemplate","importTickets","exportTickets"):""}
+  <div class="filters">
+    <input placeholder="Search…" value="${esc(state.filters.q||"")}" oninput="state.filters.q=this.value;render();this.focus();this.setSelectionRange(this.value.length,this.value.length)">
+    <select onchange="state.filters.status=this.value;render()">
+      <option value="">All ${L("status").toLowerCase()}es</option>
+      ${["New","Assigned","InProgress","Resolved","Closed"].map(s=>`<option ${state.filters.status===s?"selected":""} value="${s}">${s==="InProgress"?"In Progress":s}</option>`).join("")}
+    </select>
+    <select onchange="state.filters.pri=this.value;render()">
+      <option value="">All priorities</option>
+      ${["P1","P2","P3","P4"].map(p=>`<option ${state.filters.pri===p?"selected":""}>${p}</option>`).join("")}
+    </select>
+    <select onchange="state.filters.proj=this.value;render()">
+      <option value="">All ${L("project").toLowerCase()}s</option>
+      ${state.projects.map(p=>`<option value="${p.code}" ${state.filters.proj===p.code?"selected":""}>${p.code} — ${esc(p.name)}</option>`).join("")}
+    </select>
+    ${filterChips()}
+    ${Object.keys(state.filters).length?`<button class="btn btn-ghost btn-sm" onclick="state.filters={};render()">Clear all</button>`:""}
+  </div>
+  ${v==="kanban"?kanbanView(ts):v==="table"?tableView(ts):ts.length?ts.map(rowHTML).join(""):`<div class="empty">No ${L("tickets").toLowerCase()} match.</div>`}`;
+}
+function rowHTML(t){
+  const s=slaInfo(t);
+  const slaTxt=t.status==="Closed"?"Closed":t.resolvedAt?(s.met?"Within SLA":"Resolved late"):
+    s.zone==="breach"?"Breached "+fmtDur(s.remaining)+" ago":fmtDur(s.remaining)+" left of "+s.limitH+"h";
+  return `<div class="t-row bl-${t.pri}" onclick="openT('${t.id}')">
+    <div class="top">
+      <span class="id">${t.id}</span>
+      <span class="badge b-code">${t.projCode||"—"}</span>
+      ${t.mapped===false?'<span class="badge b-reopen">Unmapped</span>':""}
+      <span class="badge b-${t.pri}">${t.pri}</span>
+      <span class="badge b-status-${t.status}">${t.status==="InProgress"?"In Progress":t.status}</span>
+      <span class="badge b-cat">${esc(t.cat)}</span>
+      <span class="badge ${W_BADGE[t.warrantyDecision]||"b-w-Pending"}">${W_LABEL[t.warrantyDecision]||"Pending"}</span>
+      ${t.reopenCount?`<span class="badge b-reopen">Reopened ×${t.reopenCount}</span>`:""}
+      ${t.designInput?'<span class="badge b-design">Design</span>':""}
+    </div>
+    <h3>${esc(t.title)}</h3>
+    <div class="meta">${esc((projByCode(t.projCode)||{}).name||"")} · ${uname(t.clientId)} · ${L("owner")}: ${uname(t.owner)} · ${fmtDT(t.createdAt)}</div>
+    ${t.status!=="Closed"?`<div style="display:flex;align-items:center;gap:1em;margin-top:.6em">
+      <div class="sla-bar sla-${s.zone}" style="flex:1"><i style="width:${Math.min(s.pct,100)}%"></i></div>
+      <span class="sla-label ${s.zone}">${slaTxt}</span></div>`:""}
+  </div>`;
+}
+function kanbanView(ts){
+  const cols=["New","Assigned","InProgress","Resolved","Closed"];
+  return `<div class="kb">${cols.map(s=>{
+    const cards=ts.filter(t=>t.status===s);
+    return `<div class="kb-col"><h4>${s==="InProgress"?"In Progress":s}<span>${cards.length}</span></h4>
+      ${cards.map(t=>{const sl=slaInfo(t);return `<div class="kb-card" onclick="openT('${t.id}')">
+        <div style="display:flex;justify-content:space-between;gap:.5em"><span class="id">${t.id}</span><span class="badge b-${t.pri}">${t.pri}</span></div>
+        <div class="tt">${esc(t.title)}</div>
+        <div style="display:flex;gap:.4em;flex-wrap:wrap;margin-bottom:.4em"><span class="badge b-code">${t.projCode}</span><span class="badge ${W_BADGE[t.warrantyDecision]}">${W_LABEL[t.warrantyDecision]}</span></div>
+        <div class="hint">${uname(t.owner)} · ${t.status!=="Closed"?`<span class="sla-label ${sl.zone}">${sl.zone==="breach"?"SLA breached":fmtDur(sl.remaining)}</span>`:fmtD(t.closedAt)}</div>
+      </div>`}).join("")||'<div class="hint" style="text-align:center;padding:1em">—</div>'}
+    </div>`}).join("")}</div>`;
+}
+function tableView(ts){
+  return `<div class="tbl-wrap"><table class="tbl">
+    <tr><th>ID</th><th>${L("projectCode")}</th><th>Title</th><th>${L("category")}</th><th>${L("priority")}</th><th>${L("status")}</th><th>${L("owner")}</th><th>${L("client")}</th><th>${L("warranty")}</th><th>SLA</th><th>Created</th></tr>
+    ${ts.map(t=>{const s=slaInfo(t);return `<tr onclick="openT('${t.id}')">
+      <td><b style="color:var(--acc)">${t.id}</b></td><td><span class="badge b-code">${t.projCode||"—"}</span>${t.mapped===false?' <span class="badge b-reopen">Unmapped</span>':""}</td>
+      <td>${esc(t.title)}</td><td>${esc(t.cat)}</td>
+      <td><span class="badge b-${t.pri}">${t.pri}</span></td>
+      <td><span class="badge b-status-${t.status}">${t.status==="InProgress"?"In Progress":t.status}</span></td>
+      <td>${uname(t.owner)}</td><td>${uname(t.clientId)}</td>
+      <td><span class="badge ${W_BADGE[t.warrantyDecision]}">${W_LABEL[t.warrantyDecision]}</span></td>
+      <td><span class="sla-label ${s.zone}">${t.status==="Closed"?"—":t.resolvedAt?(s.met?"Met":"Late"):s.zone==="breach"?"Breached":fmtDur(s.remaining)}</span></td>
+      <td>${fmtDT(t.createdAt)}</td></tr>`}).join("")}
+  </table></div>${ts.length?"":`<div class="empty">No ${L("tickets").toLowerCase()} match.</div>`}`;
+}
+
+/* ================= CLIENT WARRANTY VIEW ================= */
+function warrantyView(){
+  const u=me();
+  const myProjects=state.projects.filter(p=>(p.clients||[]).includes(u.id));
+  const FV=getVar('freeVisits');
+  return `<div class="pagehead"><h2>${L("myWarranty")}</h2></div>`+(myProjects.map(p=>{
+    const m=monthsSince(p.handover),w=p.warranty||defaultWarranty();
+    const line=(label,months)=>`<div class="w-line"><span>${label}</span>${m<=months?`<span class="ok">ACTIVE — ${Math.floor(months-m)} mo left</span>`:'<span class="no">EXPIRED</span>'}</div>`;
+    return `<div class="card">
+      <div style="display:flex;gap:.8em;align-items:center;flex-wrap:wrap"><span class="badge b-code">${p.code}</span><b>${esc(p.name)}</b></div>
+      <div class="hint">Handover ${fmtD(p.handover)} (${m.toFixed(1)} months ago) · ${L("warranty")} runs from handover (§15.3) · ${L("client")}s: ${(p.clients||[]).map(uname).join(", ")}</div>
+      ${p.duesCleared?"":`<div class="banner warn">⚠ ${L("warranty")} on hold — pending dues (§15.3).</div>`}
+      <div class="w-panel">
+        ${line("Modular carcass / shutters",w.carcass)}
+        ${line("Modular installation workmanship",w.install)}
+        ${line("Edge banding / lamination",w.edge)}
+        ${line("On-site works (painting, ceiling, electrical)",w.onsite)}
+        <div class="w-line"><span>Hardware / appliances (branded)</span><span class="oem">OEM warranty — we coordinate claims</span></div>
+        <div class="w-line"><span>Free quarterly service visits</span>${m<=12?`<span class="ok">${FV-p.freeVisitsUsed} of ${FV} remaining</span>`:'<span class="no">Window over</span>'}</div>
+      </div>
+      <div class="sop-note">Report defects within ${getVar('noticeDays')} days of noticing (visible defects within ${getVar('visibleDefectDays')} days post-installation). No dismantling or third-party repair before our inspection (D2). Not covered: leakage/seepage, wear &amp; tear, misuse, third-party damage (D1).</div>
+    </div>`;
+  }).join("")||`<div class="empty">No ${L("project").toLowerCase()}s linked to you.</div>`);
+}
+
+/* ================= NEW TICKET ================= */
+function newTicketFormHTML(isClient,prefillPhone){
+  const u=me();
+  return `
+    <div class="hint">${isClient?"Photos/videos are required for warranty claims. Portal requests are an official channel (Annexure H1).":"Log requests received via email, WhatsApp, webform or call — within 10 minutes (not official until ticketed). Mapping to "+L("project").toLowerCase()+" & "+L("client").toLowerCase()+" happens after the ticket is raised."}</div>
+    ${!isClient?`<label>Intake channel</label>
+      <select id="nf_channel"><option>Email to support</option><option>WhatsApp (manual conversion)</option><option>Webform</option><option>Phone call</option><option>Walk-in / site</option></select>`:""}
+    <label>Contact phone number *</label>
+    <input id="nf_phone" placeholder="e.g., 98765 43210" value="${esc(prefillPhone||(isClient?u.phone||"":""))}">
+    <div class="hint">Used to look up the ${L("client").toLowerCase()} record in our database when this request is mapped — client is not picked from a list here.</div>
+    <label>${L("project")} / site — free field *</label>
+    <input id="nf_proj_text" placeholder="As mentioned by the customer, e.g., Primark Econest, Tower B">
+    <label>Site / location details (open field)</label>
+    <input id="nf_site" placeholder="e.g., Flat 1203 — master bedroom">
+    <div class="hint">No selection needed — after the ticket is raised, our agent maps it to the existing ${L("project").toLowerCase()} and ${L("client").toLowerCase()} records in the ${L("admin")}.</div>
+    <label>Issue title *</label>
+    <input id="nf_title" placeholder="e.g., Kitchen shutter not closing">
+    <label>Issue description *</label>
+    <textarea id="nf_desc" placeholder="What's happening, which room/unit, since when…"></textarea>
+    <label>${L("category")} (if known)</label>
+    <select id="nf_cat"><option value="">Not sure</option>${catNames().map(c=>`<option>${c}</option>`).join("")}</select>
+    ${module_("complaints").custom.map(f=>`<label>${esc(f.label)}${f.required?" *":""}</label>${cfInput(f,"",`id="cf_${f.key}"`)}`).join("")}
+    <label>Photo / video ${isClient?"*":""}</label>
+    <input type="file" id="nf_file" accept="image/*,video/*">
+    <label>${L("accessWindow")}</label>
+    <input id="nf_access" placeholder="e.g., Weekdays 10 AM – 6 PM">
+    <div class="actions-bar"><button class="btn btn-primary" onclick="submitNew(${isClient})">Submit request</button></div>
+    <div class="sop-note">Minimum info: phone number, ${L("project").toLowerCase()}, clear description, photos/videos, access window. Visible defects within ${getVar('visibleDefectDays')} days post-installation (D2.3).</div>`;
+}
+function newTicketView(){
+  const u=me();const isClient=u.role==="client";
+  return `<div class="pagehead"><h2>${L("newTicket")}</h2></div>
+  <div class="card" style="max-width:56em">${newTicketFormHTML(isClient)}</div>`;
+}
+function newComplaintModal(){
+  const u=me();const isClient=u.role==="client";
+  modal(`<h3>${L("newTicket")}</h3>${newTicketFormHTML(isClient)}`);
+}
+function syncCode(){const c=document.getElementById("nf_code");if(c)c.value=document.getElementById("nf_project").value}
+function codeToProject(code){
+  const p=projByCode(code.trim());
+  if(p){document.getElementById("nf_project").value=p.code;render_nf_warranty()}
+  else alert("No project with code "+code);
+}
+function render_nf_warranty(){
+  const el=document.getElementById("nf_warranty");if(!el)return;
+  const code=document.getElementById("nf_project").value,c=document.getElementById("nf_cat").value;
+  el.innerHTML=(c&&code)?warrantyPanel(code,c).html:"";
+}
+function render_nf_proj(){
+  const cid=document.getElementById("nf_client").value;
+  const ps=state.projects.filter(p=>(p.clients||[]).includes(cid));
+  const use=ps.length?ps:state.projects;
+  document.getElementById("nf_project").innerHTML=use.map(p=>`<option value="${p.code}">${p.code} — ${esc(p.name)}</option>`).join("");
+  syncCode();render_nf_warranty();
+}
+function submitNew(isClient){
+  const g=id=>document.getElementById(id);
+  const title=g("nf_title").value.trim(),desc=g("nf_desc").value.trim();
+  if(!title||!desc){alert("Issue title and description are required.");return}
+  if(!g("nf_phone").value.trim()){alert("Contact phone number is required.");return}
+  if(!g("nf_proj_text").value.trim()){alert(L("project")+" / site free field is required.");return}
+  const f=g("nf_file").files[0];
+  if(isClient&&!f){alert("Please attach a photo or video — required for warranty claims (Annexure H2 / D2).");return}
+  const custom={};let missing=null;
+  module_("complaints").custom.forEach(cf=>{
+    const el=g("cf_"+cf.key);if(!el)return;
+    const val=cf.type==="checkbox"?el.checked:el.value;
+    if(cf.required&&!val&&!missing)missing=cf.label;
+    custom[cf.key]=val;
+  });
+  if(missing){alert(missing+" is required.");return}
+  const fin=(attData)=>createTicket({projCode:"",projText:g("nf_proj_text").value.trim(),title,desc,cat:g("nf_cat").value,
+    phone:g("nf_phone").value.trim(),
+    site:g("nf_site").value,
+    access:g("nf_access").value,channel:isClient?"portal":g("nf_channel").value,
+    clientId:isClient?null:g("nf_client").value,attName:f?f.name:null,attData,custom});
+  if(f&&f.type.startsWith("image/")&&f.size<2e6){const r=new FileReader();r.onload=e=>fin(e.target.result);r.readAsDataURL(f)}
+  else fin(null);
+}
+
+/* ================= DETAIL ================= */
+function detailView(t){
+  if(!t)return `<div class="empty">${L("ticket")} not found.</div>`;
+  const s=slaInfo(t);const r=me().role;
+  const isMgr=isStaffAdmin();
+  const isOwner=t.owner===state.viewer;
+  const canSeeInternal=r!=="client";
+  const p=projByCode(t.projCode);
+
+  let banners="";
+  if(canSeeInternal&&t.mapped===false)banners+=`<div class="banner warn">📌 <b>Unmapped request</b> — verify and map to the correct ${L("project").toLowerCase()} and ${L("client").toLowerCase()} record before triage. ${isMgr?`<button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="mapModal('${t.id}')">Map now</button>`:""}</div>`;
+  if(t.status!=="Closed"&&!t.resolvedAt){
+    if(s.zone==="breach")banners+=`<div class="banner crit">⛔ <b>SLA BREACHED</b> (${t.pri} = ${s.limitH}h) — L3 review; client must get a revised timeline today. ${isMgr?`<button class="btn btn-red btn-sm" style="margin-left:auto" onclick="breachModal('${t.id}')">Log breach reason</button>`:""}</div>`;
+    else if(s.zone==="crit")banners+=`<div class="banner crit">🔴 <b>${s.pct}% of SLA consumed</b> — escalate to L2; confirm revised plan.</div>`;
+    else if(s.zone==="warn")banners+=`<div class="banner warn">🟠 <b>${s.pct}% of SLA consumed</b> — L1 follow-up due.</div>`;
+  }
+  if(t.warrantyDecision==="Hold")banners+=`<div class="banner warn">💰 <b>${L("warranty")} ON HOLD</b> — pending dues (§15.3).</div>`;
+  if(t.warrantyDecision==="NonWarranty")banners+=`<div class="banner info">🧾 <b>Non-warranty</b> (${esc(t.exclusionReason||"excluded")}) — chargeable.${t.estimate?" Estimate: "+esc(t.estimate):""} Proceeds only after client approval (D4).</div>`;
+  if(t.reopenCount>=2)banners+=`<div class="banner crit">⚠ <b>Reopened ${t.reopenCount}×</b> — mandatory L3 review + CAPA.</div>`;
+  else if(t.reopenCount===1)banners+=`<div class="banner warn">↺ Reopened once. 2nd reopen triggers CAPA.</div>`;
+  if(t.designInput&&t.status!=="Closed")banners+=`<div class="banner info">🎨 Design input requested — respond within 4 working hours.</div>`;
+  if(t.status==="Closed"){
+    const left=getVar('reopenDays')*DAY-(now()-t.closedAt);
+    banners+=left>0?`<div class="banner green">✅ Closed ${fmtDT(t.closedAt)}. Reopen window: <b>${fmtDur(left)}</b> remaining.</div>`
+                   :`<div class="banner green">✅ Closed ${fmtDT(t.closedAt)}. Reopen window expired.</div>`;
+  }
+  const pend=pendingApprovals(t);
+  pend.forEach(a=>{
+    const idx=t.approvals.indexOf(a);
+    const canApprove=me().role===a.role||me().role==="superadmin";
+    banners+=`<div class="banner warn">⏳ <b>Approval pending:</b> ${esc(a.name)} — awaiting ${ROLES[a.role]||a.role}.
+      ${canApprove?`<span style="margin-left:auto;display:flex;gap:.5em">
+        <button class="btn btn-green btn-sm" onclick="approve('${t.id}',${idx},true)">Approve</button>
+        <button class="btn btn-red btn-sm" onclick="approve('${t.id}',${idx},false)">Reject</button></span>`:""}</div>`;
+  });
+  (t.approvals||[]).filter(a=>a.status==="rejected").forEach(a=>{
+    banners+=`<div class="banner crit">✕ Approval rejected: ${esc(a.name)} — by ${uname(a.by)}. Review before proceeding.</div>`;
+  });
+
+  let actions=[];
+  if(t.status==="New"&&isMgr&&t.mapped!==false)actions.push(`<button class="btn btn-primary" onclick="triageModal('${t.id}')">⚖ Triage &amp; assign</button>`);
+  if(isMgr&&t.mapped!==false&&t.status!=="Closed")actions.push(`<button class="btn btn-ghost" onclick="mapModal('${t.id}')">📌 Re-map</button>`);
+  if(t.status!=="New"&&t.status!=="Closed"&&(isMgr||isOwner)&&t.warrantyDecision==="Pending")actions.push(`<button class="btn btn-amber" onclick="decisionModal('${t.id}')">🛡 ${L("warranty")} decision</button>`);
+  if(t.status==="Assigned"&&(isOwner||isMgr)&&t.warrantyDecision!=="Hold"&&!pend.length)actions.push(`<button class="btn btn-primary" onclick="startModal('${t.id}')">▶ Start work</button>`);
+  if(t.status==="InProgress"&&(isOwner||isMgr)&&!pend.length)actions.push(`<button class="btn btn-green" onclick="resolveModal('${t.id}')">✔ Mark resolved</button>`);
+  if(t.status==="Resolved"&&isMgr&&!pend.length)actions.push(`<button class="btn btn-green" onclick="qcModal('${t.id}')">🔒 Close (QC)</button>`);
+  if(t.status==="Resolved"&&r==="client")actions.push(
+    `<button class="btn btn-green" onclick="addComment(state.tickets.find(x=>x.id==='${t.id}'),'Confirmed — issue is resolved. Thank you.','public')">👍 Confirm resolved</button>`,
+    `<button class="btn btn-amber" onclick="reopenModal('${t.id}')">Issue persists</button>`);
+  if(t.status==="Closed"&&r==="client"&&(now()-t.closedAt)<getVar('reopenDays')*DAY)actions.push(`<button class="btn btn-amber" onclick="reopenModal('${t.id}')">↺ Reopen</button>`);
+  if(canSeeInternal&&t.status!=="Closed"&&t.status!=="New")actions.push(`<button class="btn btn-ghost" onclick="toggleDesign(state.tickets.find(x=>x.id==='${t.id}'))">${t.designInput?"Remove design tag":"🎨 Tag design input"}</button>`);
+
+  const wp=canSeeInternal&&t.cat?warrantyPanel(t.projCode,t.cat):null;
+  const resBlock=t.resolution?`
+    <div class="section-title">${L("resolutionSummary")}</div>
+    <div class="w-panel"><div class="kv" style="grid-template-columns:1fr;margin-top:0;padding-top:0;border-top:none">
+      <div><b>Issue</b><span>${esc(t.resolution.issue)}</span></div>
+      <div><b>Root cause</b><span>${esc(t.resolution.rootCause)}</span></div>
+      <div><b>Action taken</b><span>${esc(t.resolution.action)}</span></div>
+      <div><b>Parts / material used</b><span>${esc(t.resolution.parts||"—")}</span></div>
+      <div><b>Prevention / usage guidance</b><span>${esc(t.resolution.prevention||"—")}</span></div>
+    </div></div>`:"";
+  const breachBlock=(canSeeInternal&&t.breachLog.length)?`
+    <div class="section-title">SLA breach log</div>
+    ${t.breachLog.map(b=>`<div class="banner crit" style="margin:.5em 0">⛔ ${fmtDT(b.time)} — ${esc(b.reason)}. Next: ${esc(b.nextAction)} (committed ${esc(b.committed)})</div>`).join("")}`:"";
+  const tl=visibleTimeline(t).slice().sort((a,b)=>a.time-b.time);
+  const tlHTML=tl.map(e=>`
+    <div class="tl-item tl-${e.type}"><span class="tl-dot"></span>
+      <div style="flex:1">
+        <span class="who">${e.by?esc(uname(e.by)):"System"}</span>
+        <span class="tl-tag ${e.type==="internal"?"tag-internal":e.type==="public"?"tag-public":""}">${e.type==="internal"?"INTERNAL":e.type==="public"?"PUBLIC":""}</span>
+        <span class="when"> · ${fmtDT(e.time)}</span>
+        <div class="txt">${esc(e.text)}</div>
+      </div></div>`).join("");
+  const commentBox=t.status!=="Closed"?`
+    <div style="margin-top:1em">
+      <textarea id="cmt" placeholder="${r==="client"?"Add a message…":"Add an update…"}"></textarea>
+      <div class="actions-bar">
+        <button class="btn btn-primary btn-sm" onclick="addComment(state.tickets.find(x=>x.id==='${t.id}'),document.getElementById('cmt').value,'public')">Post public update</button>
+        ${canSeeInternal?`<button class="btn btn-ghost btn-sm" onclick="addComment(state.tickets.find(x=>x.id==='${t.id}'),document.getElementById('cmt').value,'internal')">Internal note</button>`:""}
+        ${canSeeInternal?templateMenu(t):""}
+      </div></div>`:"";
+
+  return `
+  <button class="btn btn-ghost btn-sm" onclick="go('tickets')">← ${L("tickets")}</button>
+  <div class="card" style="margin-top:1em">
+    <div class="top" style="display:flex;gap:.5em;flex-wrap:wrap;align-items:center">
+      <b style="color:var(--acc);letter-spacing:.06em">${t.id}</b>
+      ${canSeeInternal?`<input value="${t.projCode}" style="width:8em;font-weight:700" onchange="setProjCode(state.tickets.find(x=>x.id==='${t.id}'),this.value)" title="Edit ${L("projectCode")}">`:`<span class="badge b-code">${t.projCode}</span>`}
+      <span class="badge b-${t.pri}">${t.pri}</span>
+      <span class="badge b-status-${t.status}">${t.status==="InProgress"?"In Progress":t.status}</span>
+      <span class="badge b-cat">${esc(t.cat)}</span>
+      <span class="badge ${W_BADGE[t.warrantyDecision]||"b-w-Pending"}">${W_LABEL[t.warrantyDecision]||"Pending"}</span>
+      ${t.serviceType?`<span class="badge b-svc">${esc(t.serviceType)}</span>`:""}
+      ${t.reopenCount?`<span class="badge b-reopen">Reopened ×${t.reopenCount}</span>`:""}
+    </div>
+    <h3 style="margin:.6em 0 .2em"><b>${esc(t.title)}</b></h3>
+    <div class="hint">${esc(t.desc)}</div>
+    <div class="kv">
+      <div><b>${L("project")}</b><span>${esc(p?p.name:t.projCode)}</span></div>
+      <div><b>${L("client")}</b><span>${uname(t.clientId)}</span></div>
+      <div><b>${L("owner")}</b><span>${uname(t.owner)}</span></div>
+      <div><b>Created</b><span>${fmtDT(t.createdAt)}</span></div>
+      <div><b>Handover</b><span>${p?fmtD(p.handover):"—"}</span></div>
+      <div><b>SLA</b><span>${s.limitH}h (${t.pri})</span></div>
+      <div><b>Reported ${L("project").toLowerCase()} (free field)</b><span>${esc(t.projText||"—")}</span></div>
+      <div><b>Site details (open field)</b><span>${esc(t.siteInfo||"—")}</span></div>
+    </div>
+    ${t.status!=="Closed"?`<div style="margin-top:1.2em">
+      <div style="display:flex;justify-content:space-between"><span class="sla-label ${s.zone}">${t.resolvedAt?(s.met?"Resolved within SLA ✔":"Resolved after SLA breach"):s.zone==="breach"?"Breached "+fmtDur(s.remaining)+" ago":fmtDur(s.remaining)+" remaining"}</span><span class="hint">${s.pct}% consumed</span></div>
+      <div class="sla-bar sla-${s.zone}"><i style="width:${Math.min(s.pct,100)}%"></i></div></div>`:""}
+    ${banners}
+    <div class="actions-bar">${actions.join("")}</div>
+    ${wp?`<div class="section-title">${L("warranty")} check — ${esc(t.cat)}</div>${wp.html}`:""}
+    ${(module_("complaints").custom.length&&canSeeInternal)?`
+      <div class="section-title">Additional details (custom fields)</div>
+      <div class="kv" style="border-top:none;padding-top:0">
+        ${module_("complaints").custom.map(f=>`<div><b>${esc(f.label)}</b>
+          ${cfInput(f,(t.custom||{})[f.key],`onchange="const tk=state.tickets.find(x=>x.id==='${t.id}');tk.custom=tk.custom||{};tk.custom['${f.key}']=this.value;save()"`)}
+        </div>`).join("")}
+      </div>`:""}
+  </div>
+  <div class="card">
+    <div class="section-title" style="margin-top:0">${L("attachments")} — before/after proof</div>
+    <div class="att-list">
+      ${t.attachments.length?t.attachments.map(a=>`<span class="att">${a.data?`<img src="${a.data}">`:""}📎 ${esc(a.name)} <span class="hint" style="margin:0">· ${uname(a.by)}</span></span>`).join(""):'<span class="hint">No attachments yet.</span>'}
+    </div>
+    ${t.status!=="Closed"?`<div style="margin-top:.8em"><input type="file" accept="image/*,video/*,.pdf" onchange="attachFile(state.tickets.find(x=>x.id==='${t.id}'),this)"></div>`:""}
+  </div>
+  ${resBlock?`<div class="card">${resBlock}</div>`:""}
+  ${breachBlock?`<div class="card">${breachBlock}</div>`:""}
+  <div class="card">
+    <div class="section-title" style="margin-top:0">${L("timeline")} ${r==="client"?'<span style="text-transform:none;letter-spacing:0">(public updates only)</span>':""}</div>
+    ${tlHTML}
+    ${commentBox}
+  </div>`;
+}
+function templateMenu(t){
+  const tpl={
+    "Acknowledgement":"Your request is logged as "+t.id+". We will update you shortly.",
+    "Scheduling":"Visit scheduled on ___ between ___. Please confirm access availability.",
+    "Inspection first (D2)":"We will first inspect the issue (remote or site visit) to confirm warranty eligibility before any repair. Please do not dismantle or allow third-party repair before inspection.",
+    "Delay + revised plan":"We need a little more time. Revised plan: ___ — committed by ___. Apologies for the delay.",
+    "Non-warranty estimate":"Inspection complete. This issue falls outside warranty (Annexure D). We can fix it for ₹___ — please confirm to proceed.",
+    "Completion confirmation":"Work completed: ___. Please confirm if all OK.",
+    "Closure + reopen policy":"Closing "+t.id+". You may reopen within "+getVar('reopenDays')+" days if the issue repeats."
+  };
+  return `<select style="width:auto" onchange="if(this.value){document.getElementById('cmt').value=this.value;this.selectedIndex=0}">
+    <option value="">📋 Templates…</option>
+    ${Object.entries(tpl).map(([k,v])=>`<option value="${esc(v)}">${k}</option>`).join("")}
+  </select>`;
+}
+/* ================= MODALS ================= */
+function modal(html){document.getElementById("modalRoot").innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`}
+function closeModal(){document.getElementById("modalRoot").innerHTML=""}
+
+function mapModal(id){
+  const t=state.tickets.find(x=>x.id===id);
+  const phoneMatch=t.phone?findClientByPhone(t.phone):null;
+  modal(`<h3>Map request — ${id}</h3><div class="sub">Link this request to the master ${L("project").toLowerCase()} and ${L("client").toLowerCase()} records from the ${L("admin")}.</div>
+  ${t.phone?`<div class="sop-note">Phone number on request: <b>${esc(t.phone)}</b>${phoneMatch?` — matches ${L("client").toLowerCase()} record: <b>${esc(phoneMatch.name)}</b> (pre-selected below).`:` — no matching ${L("client").toLowerCase()} record found.`}</div>`:""}
+  ${t.projText?`<div class="sop-note">Reported ${L("project").toLowerCase()} (free field): "${esc(t.projText)}"</div>`:""}
+  ${t.siteInfo?`<div class="sop-note">Site details: "${esc(t.siteInfo)}"</div>`:""}
+  <label>${L("project")} *</label>
+  <select id="mm_proj" onchange="mmClients()">${state.projects.map(p=>`<option value="${p.code}" ${t.projCode===p.code?"selected":""}>${p.code} — ${esc(p.name)}</option>`).join("")}</select>
+  <label>${L("client")} *</label>
+  <select id="mm_client"></select>
+  <div class="actions-bar">
+    <button class="btn btn-primary" onclick="mapTicket('${id}')">Confirm mapping</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+  mmClients(t.clientId||(phoneMatch?phoneMatch.id:null));
+}
+function mmClients(sel){
+  const p=projByCode(document.getElementById("mm_proj").value);
+  const ids=(p&&p.clients&&p.clients.length)?p.clients:state.clients.map(c=>c.id);
+  document.getElementById("mm_client").innerHTML=ids.map(id=>`<option value="${id}" ${sel===id?"selected":""}>${esc(uname(id))}</option>`).join("");
+}
+function mapTicket(id){
+  const t=state.tickets.find(x=>x.id===id);
+  const code=document.getElementById("mm_proj").value;
+  t.projCode=code;t.clientId=document.getElementById("mm_client").value;t.mapped=true;
+  addEvent(t,"system","📌 Mapped to "+code+" ("+esc((projByCode(code)||{}).name||"")+") · "+L("client")+": "+uname(t.clientId)+" — by "+uname(state.viewer)+".");
+  closeModal();render();
+}
+function triageModal(id){
+  const t=state.tickets.find(x=>x.id===id);
+  modal(`<h3>Triage — ${t.id}</h3><div class="sub">P1/P2 within 30 min, P3/P4 within 4 h of intake.</div>
+  <label>${L("category")}</label>
+  <select id="tm_cat" onchange="document.getElementById('tm_wp').innerHTML=warrantyPanel('${t.projCode}',this.value).html">${catNames().map(c=>`<option ${t.cat===c?"selected":""}>${c}</option>`).join("")}</select>
+  <div id="tm_wp">${warrantyPanel(t.projCode,t.cat).html}</div>
+  <label>Service type</label>
+  <select id="tm_svc">${SERVICE_TYPES.map(s=>`<option>${s}</option>`).join("")}</select>
+  <label>${L("priority")}</label>
+  <select id="tm_pri" onchange="document.getElementById('tm_guide').textContent=PRIORITY_GUIDE[this.value]">
+    ${["P1","P2","P3","P4"].map(p2=>`<option ${t.pri===p2?"selected":""}>${p2}</option>`).join("")}</select>
+  <div class="hint" id="tm_guide">${PRIORITY_GUIDE[t.pri]}</div>
+  <label>Assign ${L("owner").toLowerCase()}</label>
+  <select id="tm_owner">${engineers().map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join("")}</select>
+  <label>Next update promised by</label>
+  <input id="tm_next" placeholder="e.g., today 6 PM">
+  <div class="actions-bar">
+    <button class="btn btn-primary" onclick="triage(state.tickets.find(x=>x.id==='${id}'),document.getElementById('tm_cat').value,document.getElementById('tm_pri').value,document.getElementById('tm_owner').value,document.getElementById('tm_svc').value,document.getElementById('tm_next').value);closeModal()">Assign &amp; acknowledge client</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+}
+function decisionModal(id){
+  const t=state.tickets.find(x=>x.id===id);
+  modal(`<h3>${L("warranty")} decision — ${t.id}</h3><div class="sub">Decide after inspection (Annexure D). Covered → free remedy. Excluded → chargeable with estimate. Branded → OEM claim.</div>
+  ${warrantyPanel(t.projCode,t.cat).html}
+  <label>Decision</label>
+  <select id="dm_dec" onchange="document.getElementById('dm_ex_wrap').style.display=this.value==='NonWarranty'?'block':'none'">
+    <option value="Covered">Covered under warranty (free repair/replacement)</option>
+    <option value="NonWarranty">Non-warranty — chargeable (D1 exclusion)</option>
+    <option value="OEM">OEM referred (branded part)</option>
+  </select>
+  <div id="dm_ex_wrap" style="display:none">
+    <label>Exclusion reason (D1) *</label>
+    <select id="dm_ex">${D1_EXCLUSIONS.map(x=>`<option>${x}</option>`).join("")}</select>
+    <label>Estimate</label>
+    <input id="dm_est" placeholder="e.g., ₹2,500 (part + labour)">
+  </div>
+  <div class="actions-bar">
+    <button class="btn btn-primary" onclick="const d=document.getElementById('dm_dec').value;setWarrantyDecision(state.tickets.find(x=>x.id==='${id}'),d,d==='NonWarranty'?document.getElementById('dm_ex').value:null,d==='NonWarranty'?document.getElementById('dm_est').value:null)">Record decision</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+}
+function startModal(id){
+  modal(`<h3>Start work — ${id}</h3><div class="sub">Record observations, suspected cause, plan. Capture "before" evidence.</div>
+  <label>Inspection / start note</label>
+  <textarea id="sm_note"></textarea>
+  <div class="actions-bar">
+    <button class="btn btn-primary" onclick="startWork(state.tickets.find(x=>x.id==='${id}'),document.getElementById('sm_note').value);closeModal()">Start work</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+}
+function resolveModal(id){
+  const t=state.tickets.find(x=>x.id===id);
+  modal(`<h3>${L("resolutionSummary")} — ${id}</h3><div class="sub">Mandatory format — cannot resolve without it.</div>
+  <label>Issue *</label><input id="rm_issue" value="${esc(t.title)}">
+  <label>Root cause *</label><textarea id="rm_root"></textarea>
+  <label>Action taken *</label><textarea id="rm_action"></textarea>
+  <label>Parts / material used</label><input id="rm_parts">
+  <label>Prevention / usage guidance</label><textarea id="rm_prev"></textarea>
+  ${t.warrantyDecision==="Covered"?`<div class="sop-note">Replaced parts carry only the remaining original warranty term (§15.7).</div>`:""}
+  <div class="actions-bar">
+    <button class="btn btn-green" onclick="submitResolve('${id}')">Mark resolved &amp; notify client</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+}
+function submitResolve(id){
+  const g=i=>document.getElementById(i).value.trim();
+  if(!g("rm_issue")||!g("rm_root")||!g("rm_action")){alert("Issue, Root cause and Action taken are mandatory.");return}
+  resolveTicket(state.tickets.find(x=>x.id===id),{issue:g("rm_issue"),rootCause:g("rm_root"),action:g("rm_action"),parts:g("rm_parts"),prevention:g("rm_prev")});
+}
+function qcModal(id){
+  const t=state.tickets.find(x=>x.id===id);
+  const auto=[
+    [L("resolutionSummary")+" complete",!!(t.resolution&&t.resolution.issue&&t.resolution.rootCause&&t.resolution.action)],
+    ["Proof attached",t.attachments.length>0],
+    [L("warranty")+" decision recorded",t.warrantyDecision&&t.warrantyDecision!=="Pending"],
+    [L("owner")+" recorded",!!t.owner],
+    ["No pending approvals (workflow)",!pendingApprovals(t).length],
+    ["Audit trail complete",t.timeline.length>=3]];
+  const manual=[L("category")+" correct",L("priority")+" correct","Closure message with reopen policy will be posted","If chargeable: client approval + payment confirmed","Learnings tagged"];
+  const p1=t.pri==="P1"?["Safety check completed","Client confirmation obtained","Leadership notified"]:[];
+  const autoPass=auto.every(a=>a[1]);
+  modal(`<h3>Closure QC — ${id}</h3>
+  <div class="section-title">Auto-verified</div>
+  ${auto.map(([l,ok])=>`<div class="check-row ${ok?"auto-ok":"auto-fail"}">${ok?"✔":"✘"} ${l}</div>`).join("")}
+  <div class="section-title">Manual verification</div>
+  ${manual.map(l=>`<div class="check-row"><input type="checkbox" class="qc-m"> ${l}</div>`).join("")}
+  ${p1.length?`<div class="section-title">P1 high-risk checks</div>${p1.map(l=>`<div class="check-row"><input type="checkbox" class="qc-m"> ${l}</div>`).join("")}`:""}
+  <div class="actions-bar">
+    <button class="btn btn-green" ${autoPass?"":"disabled"} onclick="tryClose('${id}')">Close</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>
+  ${autoPass?"":`<div class="banner crit" style="margin-top:1em">Cannot close: fix failed auto-checks first.</div>`}`);
+}
+function tryClose(id){
+  const boxes=[...document.querySelectorAll(".qc-m")];
+  if(!boxes.every(b=>b.checked)){alert("All manual QC checks must be confirmed.");return}
+  closeTicket(state.tickets.find(x=>x.id===id));
+}
+function reopenModal(id){
+  modal(`<h3>Reopen — ${id}</h3><div class="sub">Same issue → same owner preferred. Different issue → new request.</div>
+  <label>What's still wrong? *</label>
+  <textarea id="ro_reason"></textarea>
+  <div class="actions-bar">
+    <button class="btn btn-amber" onclick="const r=document.getElementById('ro_reason').value.trim();if(!r){alert('Please describe the issue.');return}reopenTicket(state.tickets.find(x=>x.id==='${id}'),r)">Reopen</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+}
+function breachModal(id){
+  modal(`<h3>Document SLA breach — ${id}</h3><div class="sub">Mandatory. Client must receive a revised timeline same day.</div>
+  <label>Reason category *</label>
+  <select id="bm_reason">${BREACH_REASONS.map(r=>`<option>${r}</option>`).join("")}</select>
+  <label>Next action *</label><textarea id="bm_action"></textarea>
+  <label>Committed date / time *</label><input id="bm_when">
+  <div class="actions-bar">
+    <button class="btn btn-red" onclick="const a=document.getElementById('bm_action').value.trim(),w=document.getElementById('bm_when').value.trim();if(!a||!w){alert('Next action and committed time are mandatory.');return}logBreach(state.tickets.find(x=>x.id==='${id}'),document.getElementById('bm_reason').value,a,w)">Log breach &amp; notify client</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+}
+
+/* ================= RULES (editable + effective dates) ================= */
+function rulesView(){
+  const canEdit=me().role==="superadmin";
+  const sections=[...new Set(state.rules.map(r=>r.section))];
+  const changed=state.rules.filter(r=>r.history.length).sort((a,b)=>(b.effective>a.effective?1:-1));
+  return `
+  <div class="pagehead"><h2>${L("rules")}</h2><span class="sub">Source: Works Contract (signed ${fmtD(new Date(AGREEMENT_DATE).getTime())}) + SOP</span>
+    ${canEdit?`<div class="right"><button class="btn btn-primary btn-sm" onclick="addRuleModal()">＋ Add rule</button></div>`:""}</div>
+  ${sections.map(sec=>`<div class="card">
+    <div class="section-title" style="margin-top:0">${esc(sec)}</div>
+    ${state.rules.filter(r=>r.section===sec).map(r=>`
+      <div class="rule-item">
+        <div class="tx">${esc(r.text)}
+          <div style="margin-top:.3em"><span class="badge b-eff">Effective ${fmtD(new Date(r.effective).getTime())}</span>
+          ${r.history.length?`<span class="badge b-reopen">Rev ${r.history.length+1}</span>`:""}</div>
+        </div>
+        ${canEdit?`<button class="btn btn-ghost btn-sm" onclick="editRuleModal('${r.id}')">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="if(confirm('Remove this rule?')){state.rules=state.rules.filter(x=>x.id!=='${r.id}');save();render()}">✕</button>`:""}
+      </div>`).join("")}
+  </div>`).join("")}
+  ${changed.length?`<div class="card">
+    <div class="section-title" style="margin-top:0">Change log</div>
+    ${changed.map(r=>r.history.map(h=>`<div class="rule-item"><div class="tx"><b>${fmtD(new Date(h.changedAt).getTime())}</b> · ${esc(uname(h.changedBy))} changed a rule in <b>${esc(r.section)}</b>, effective ${fmtD(new Date(r.effective).getTime())}<div class="hint">Was: "${esc(h.text)}"</div><div class="hint">Now: "${esc(r.text)}"</div></div></div>`).join("")).join("")}
+  </div>`:""}`;
+}
+function editRuleModal(id){
+  const r=state.rules.find(x=>x.id===id);
+  modal(`<h3>Edit rule</h3><div class="sub">${esc(r.section)} — every change needs an effective date and is logged.</div>
+  <label>Rule text *</label>
+  <textarea id="er_text">${esc(r.text)}</textarea>
+  <label>Effective date *</label>
+  <input type="date" id="er_date" value="${new Date().toISOString().slice(0,10)}">
+  <div class="actions-bar">
+    <button class="btn btn-primary" onclick="saveRule('${id}')">Save with effective date</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+}
+function saveRule(id){
+  const r=state.rules.find(x=>x.id===id);
+  const text=document.getElementById("er_text").value.trim(),date=document.getElementById("er_date").value;
+  if(!text||!date){alert("Rule text and effective date are mandatory.");return}
+  if(text!==r.text){r.history.push({text:r.text,effective:r.effective,changedBy:state.viewer,changedAt:now()})}
+  r.text=text;r.effective=date;
+  save();closeModal();render();
+}
+function addRuleModal(){
+  const sections=[...new Set(state.rules.map(r=>r.section))];
+  modal(`<h3>Add rule</h3>
+  <label>Section</label>
+  <select id="ar_sec">${sections.map(s=>`<option>${s}</option>`).join("")}<option value="__new">＋ New section…</option></select>
+  <input id="ar_newsec" placeholder="New section name" style="display:none;margin-top:.5em" >
+  <label>Rule text *</label><textarea id="ar_text"></textarea>
+  <label>Effective date *</label>
+  <input type="date" id="ar_date" value="${new Date().toISOString().slice(0,10)}">
+  <div class="actions-bar">
+    <button class="btn btn-primary" onclick="addRule()">Add rule</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>
+  <script>document.getElementById('ar_sec').onchange=function(){document.getElementById('ar_newsec').style.display=this.value==='__new'?'block':'none'}<\/script>`);
+  document.getElementById('ar_sec').onchange=function(){document.getElementById('ar_newsec').style.display=this.value==='__new'?'block':'none'};
+}
+function addRule(){
+  let sec=document.getElementById("ar_sec").value;
+  if(sec==="__new")sec=document.getElementById("ar_newsec").value.trim()||"General";
+  const text=document.getElementById("ar_text").value.trim(),date=document.getElementById("ar_date").value;
+  if(!text||!date){alert("Rule text and effective date are mandatory.");return}
+  state.rules.push({id:"r"+Date.now().toString(36),section:sec,text,effective:date,history:[]});
+  save();closeModal();render();
+}
+
+/* ================= CONTROL PANEL ================= */
+function adminView(){
+  const sub=state.adminTab||"users";
+  const map={users:adminUsers,clients:adminClients,projects:adminProjects,categories:adminCategories,modules:adminModules,workflows:adminWorkflows,variables:adminVariables,appearance:adminAppearance};
+  return `<div class="pagehead"><h2>${L("admin")}</h2><span class="sub">Everything here can be added, edited or removed</span></div>`+(map[sub]||adminUsers)();
+}
+/* ----- users (employees) ----- */
+function adminUsers(){
+  const um=module_("users");
+  return `<div class="card">
+    <div class="section-title" style="margin-top:0">${L("users")} — our employees</div>
+    ${bulkBar(L("users").toLowerCase(),"usersTemplate","importUsers","exportUsers")}
+    ${state.users.map((u,i)=>`
+      <div class="admin-row">
+        <input value="${esc(u.code||"")}" style="width:8em;font-weight:700" placeholder="EMP-000" onchange="state.users[${i}].code=this.value;save();render()" title="Employee code">
+        <input class="grow" value="${esc(u.name)}" onchange="state.users[${i}].name=this.value;save();render()">
+        <select onchange="state.users[${i}].role=this.value;save();render()" ${u.id==="admin"?"disabled":""}>
+          ${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${u.role===k?"selected":""}>${v}</option>`).join("")}</select>
+        <label style="margin:0;display:flex;align-items:center;gap:.5em;text-transform:none;letter-spacing:0">
+          <input type="checkbox" ${u.active!==false?"checked":""} onchange="state.users[${i}].active=this.checked;save();render()" ${u.id==="admin"?"disabled":""}> Active</label>
+        ${um.custom.map(f=>`<span title="${esc(f.label)}">${cfInput(f,(u.custom||{})[f.key],`onchange="const x=state.users[${i}];x.custom=x.custom||{};x.custom['${f.key}']=this.value;save()" placeholder="${esc(f.label)}" style="max-width:11em"`)}</span>`).join("")}
+        ${u.id!=="admin"?`<button class="btn btn-ghost btn-sm" onclick="if(confirm('Remove ${esc(u.name)}?')){state.users.splice(${i},1);save();render()}">✕</button>`:`<span class="badge b-svc">You</span>`}
+      </div>`).join("")}
+    <div class="section-title">Add employee</div>
+    <div class="admin-row" style="border:none">
+      <input id="au_code" placeholder="EMP-00${state.users.length+1}" style="width:8em">
+      <input class="grow" id="au_name" placeholder="Full name">
+      <select id="au_role">${Object.entries(ROLES).filter(([k])=>k!=="superadmin").map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select>
+      <button class="btn btn-primary btn-sm" onclick="addUser()">＋ Add</button>
+    </div></div>`;
+}
+function addUser(){
+  const name=document.getElementById("au_name").value.trim();
+  if(!name){alert("Enter a name.");return}
+  const code=document.getElementById("au_code").value.trim()||("EMP-"+String(state.users.length+1).padStart(3,"0"));
+  state.users.push({id:"u"+Date.now().toString(36),code,name,role:document.getElementById("au_role").value,active:true});
+  save();render();
+}
+/* ----- clients ----- */
+function adminClients(){
+  return `<div class="card">
+    <div class="section-title" style="margin-top:0">${L("clients")} — linked to ${L("project").toLowerCase()}s</div>
+    ${bulkBar(L("clients").toLowerCase(),"clientsTemplate","importClients","exportClients")}
+    ${state.clients.map((c,i)=>{
+      const ps=state.projects.filter(p=>(p.clients||[]).includes(c.id));
+      return `<div class="admin-row" style="align-items:flex-start">
+        <div class="grow">
+          <input value="${esc(c.name)}" onchange="state.clients[${i}].name=this.value;save();render()">
+          <div style="display:flex;gap:.8em;flex-wrap:wrap;margin-top:.5em">
+            <input placeholder="Phone" value="${esc(c.phone||"")}" style="max-width:14em" onchange="state.clients[${i}].phone=this.value;save()">
+            <input placeholder="Email" value="${esc(c.email||"")}" style="max-width:18em" onchange="state.clients[${i}].email=this.value;save()">
+            ${module_("clients").custom.map(f=>`<span title="${esc(f.label)}">${cfInput(f,(c.custom||{})[f.key],`onchange="const x=state.clients[${i}];x.custom=x.custom||{};x.custom['${f.key}']=this.value;save()" placeholder="${esc(f.label)}" style="max-width:13em"`)}</span>`).join("")}
+          </div>
+          <div class="hint">${ps.length?"Linked: "+ps.map(p=>p.code).join(", "):"Not linked to any "+L("project").toLowerCase()+" yet — link from "+L("project")+"s tab."}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="if(confirm('Remove ${esc(c.name)}?')){state.clients.splice(${i},1);state.projects.forEach(p=>p.clients=(p.clients||[]).filter(x=>x!=='${c.id}'));save();render()}">✕</button>
+      </div>`}).join("")}
+    <div class="section-title">Add ${L("client").toLowerCase()}</div>
+    <div class="admin-row" style="border:none">
+      <input class="grow" id="ac_name" placeholder="Client name">
+      <input id="ac_phone" placeholder="Phone" style="max-width:13em">
+      <button class="btn btn-primary btn-sm" onclick="addClient()">＋ Add</button>
+    </div></div>`;
+}
+function addClient(){
+  const name=document.getElementById("ac_name").value.trim();
+  if(!name){alert("Enter a name.");return}
+  state.clients.push({id:"c"+Date.now().toString(36),name,phone:document.getElementById("ac_phone").value.trim(),email:""});
+  save();render();
+}
+/* ----- projects (with warranty inputs + multi-client) ----- */
+function adminProjects(){
+  return `<div class="card">
+    <div class="section-title" style="margin-top:0">${L("project")}s — codes, ${L("client").toLowerCase()}s, handover &amp; ${L("warranty").toLowerCase()} inputs</div>
+    ${bulkBar(L("project").toLowerCase()+"s","projectsTemplate","importProjects","exportProjects")}
+    ${state.projects.map((p,i)=>{
+      const w=p.warranty||defaultWarranty();
+      return `<div class="admin-row" style="align-items:flex-start;flex-direction:column;gap:.6em">
+        <div style="display:flex;gap:.8em;flex-wrap:wrap;align-items:center;width:100%">
+          <input value="${esc(p.code)}" style="width:8em;font-weight:700" onchange="changeProjCode(${i},this.value)" title="${L("projectCode")}">
+          <input class="grow" value="${esc(p.name)}" onchange="state.projects[${i}].name=this.value;save();render()">
+          <button class="btn btn-ghost btn-sm" onclick="if(confirm('Remove project ${esc(p.code)}? Its tickets remain.')){state.projects.splice(${i},1);save();render()}">✕</button>
+        </div>
+        <div class="multi">
+          <b style="align-self:center">${L("clients")}:</b>
+          ${state.clients.map(c=>`<label class="${(p.clients||[]).includes(c.id)?"on":""}"><input type="checkbox" style="display:none" ${(p.clients||[]).includes(c.id)?"checked":""} onchange="toggleProjClient(${i},'${c.id}',this.checked)">${esc(c.name)}</label>`).join("")}
+        </div>
+        <div style="display:flex;gap:1em;flex-wrap:wrap;align-items:center">
+          <b>Handover</b><input type="date" value="${new Date(p.handover).toISOString().slice(0,10)}" onchange="state.projects[${i}].handover=new Date(this.value).getTime();save();render()">
+          <label style="margin:0;display:flex;align-items:center;gap:.5em;text-transform:none;letter-spacing:0"><input type="checkbox" ${p.duesCleared?"checked":""} onchange="state.projects[${i}].duesCleared=this.checked;save();render()"> Dues cleared</label>
+          <b>Free visits used</b><input type="number" min="0" value="${p.freeVisitsUsed}" style="width:5em" onchange="state.projects[${i}].freeVisitsUsed=+this.value;save();render()">
+        </div>
+        <div style="display:flex;gap:1em;flex-wrap:wrap;align-items:center;background:#f6f7f9;border-radius:8px;padding:.7em 1em;width:100%">
+          <b>🛡 ${L("warranty")} inputs (months):</b>
+          <span>Carcass <input type="number" min="0" value="${w.carcass}" style="width:5em" onchange="state.projects[${i}].warranty.carcass=+this.value;save()"></span>
+          <span>Install <input type="number" min="0" value="${w.install}" style="width:5em" onchange="state.projects[${i}].warranty.install=+this.value;save()"></span>
+          <span>Edges <input type="number" min="0" value="${w.edge}" style="width:5em" onchange="state.projects[${i}].warranty.edge=+this.value;save()"></span>
+          <span>On-site <input type="number" min="0" value="${w.onsite}" style="width:5em" onchange="state.projects[${i}].warranty.onsite=+this.value;save()"></span>
+        </div>
+        ${module_("projects").custom.length?`<div style="display:flex;gap:1em;flex-wrap:wrap;align-items:center;width:100%">
+          ${module_("projects").custom.map(f=>`<span><b>${esc(f.label)}</b> ${cfInput(f,(p.custom||{})[f.key],`onchange="const x=state.projects[${i}];x.custom=x.custom||{};x.custom['${f.key}']=this.value;save()" style="max-width:13em"`)}</span>`).join("")}
+        </div>`:""}
+      </div>`}).join("")}
+    <div class="section-title">Add ${L("project").toLowerCase()}</div>
+    <div class="admin-row" style="border:none">
+      <input id="ap_code" placeholder="Code (PRJ-004)" style="width:9em">
+      <input class="grow" id="ap_name" placeholder="Project / site name">
+      <input type="date" id="ap_date" value="${new Date().toISOString().slice(0,10)}">
+      <button class="btn btn-primary btn-sm" onclick="addProject()">＋ Add</button>
+    </div>
+    <div class="hint">Handover date + warranty inputs drive the automatic ${L("warranty").toLowerCase()} check on every ${L("ticket").toLowerCase()}. Unchecking dues puts new claims on hold (§15.3).</div>
+  </div>`;
+}
+function toggleProjClient(i,cid,on){
+  const p=state.projects[i];p.clients=p.clients||[];
+  if(on&&!p.clients.includes(cid))p.clients.push(cid);
+  if(!on)p.clients=p.clients.filter(x=>x!==cid);
+  save();render();
+}
+function changeProjCode(i,code){
+  code=code.trim();if(!code){render();return}
+  const old=state.projects[i].code;
+  if(state.projects.some((p,j)=>j!==i&&p.code===code)){alert("Code already in use.");render();return}
+  state.projects[i].code=code;
+  state.tickets.forEach(t=>{if(t.projCode===old)t.projCode=code});
+  save();render();
+}
+function addProject(){
+  const code=document.getElementById("ap_code").value.trim()||("PRJ-"+String(state.projects.length+1).padStart(3,"0"));
+  const name=document.getElementById("ap_name").value.trim();
+  if(!name){alert("Enter a project name.");return}
+  if(state.projects.some(p=>p.code===code)){alert("Code already in use.");return}
+  state.projects.push({code,name,clients:[],handover:new Date(document.getElementById("ap_date").value).getTime()||now(),duesCleared:true,freeVisitsUsed:0,warranty:defaultWarranty()});
+  save();render();
+}
+/* ----- categories ----- */
+function adminCategories(){
+  return `<div class="card">
+    <div class="section-title" style="margin-top:0">${L("category")} master — fully editable</div>
+    ${bulkBar(L("category").toLowerCase()+"ies","categoriesTemplate","importCategories","exportCategories")}
+    ${catNames().map(c=>`<div class="admin-row" style="align-items:flex-start">
+      <div class="grow">
+        <input value="${esc(c)}" style="font-weight:700" onchange="renameCategory('${esc(c)}',this.value)" title="Rename — cascades to existing ${L("tickets").toLowerCase()}">
+        <input value="${esc(catDef(c).note||"")}" placeholder="Tolerance note shown at triage" style="margin-top:.4em;width:100%" onchange="state.categories['${esc(c)}'].note=this.value;save()">
+      </div>
+      <select onchange="state.categories['${esc(c)}'].tpl=this.value;save();render()">
+        ${Object.keys(COV_TPL).map(k=>`<option ${catDef(c).tpl===k?"selected":""}>${k}</option>`).join("")}</select>
+      <button class="btn btn-ghost btn-sm" onclick="if(confirm('Remove ${esc(c)}?')){delete state.categories['${esc(c)}'];save();render()}">✕</button>
+    </div>`).join("")}
+    <div class="section-title">Add ${L("category").toLowerCase()}</div>
+    <div class="admin-row" style="border:none">
+      <input class="grow" id="acat_name" placeholder="e.g., Glass & Mirror">
+      <select id="acat_tpl">${Object.keys(COV_TPL).map(k=>`<option>${k}</option>`).join("")}</select>
+      <input class="grow" id="acat_note" placeholder="Tolerance note (optional)">
+      <button class="btn btn-primary btn-sm" onclick="addCategory()">＋ Add</button>
+    </div></div>`;
+}
+function renameCategory(old,nu){
+  nu=nu.trim();
+  if(!nu||nu===old){render();return}
+  if(state.categories[nu]){alert("A category with that name already exists.");render();return}
+  state.categories[nu]=state.categories[old];delete state.categories[old];
+  state.tickets.forEach(t=>{if(t.cat===old)t.cat=nu});
+  save();render();
+}
+function addCategory(){
+  const name=document.getElementById("acat_name").value.trim();
+  if(!name){alert("Enter a category name.");return}
+  state.categories[name]={tpl:document.getElementById("acat_tpl").value,note:document.getElementById("acat_note").value.trim()};
+  save();render();
+}
+/* ================= EXCEL IMPORT / EXPORT ================= */
+function downloadSheet(filename,sheetName,rows){
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,sheetName);
+  XLSX.writeFile(wb,filename);
+}
+function importSheet(input,cb){
+  const f=input.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=new Uint8Array(e.target.result);
+      const wb=XLSX.read(data,{type:"array"});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+      cb(rows);
+    }catch(err){alert("Could not read that file. Please use the downloaded template format.")}
+    input.value="";
+  };
+  reader.readAsArrayBuffer(f);
+}
+function bulkBar(label,tplFn,importFn,exportFn){
+  const uid="bk_"+Math.random().toString(36).slice(2,8);
+  return `<div class="admin-row" style="border:none;background:#f9fafb;border-radius:8px;padding:.7em 1em;gap:.6em">
+    <b style="margin-right:.3em">Bulk ${label}:</b>
+    <button class="btn btn-ghost btn-sm" onclick="${tplFn}()">⬇ Download template</button>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">⬆ Import Excel
+      <input type="file" id="${uid}" accept=".xlsx,.xls" style="display:none" onchange="${importFn}(this)"></label>
+    <button class="btn btn-ghost btn-sm" onclick="${exportFn}()">⬇ Export Excel</button>
+  </div>`;
+}
+/* ----- users ----- */
+function usersTemplate(){downloadSheet("users_template.xlsx","Users",[{Code:"EMP-101",Name:"Jane Doe",Role:"engineer",Active:"Yes"}])}
+function exportUsers(){downloadSheet("users_export.xlsx","Users",state.users.map(u=>({Code:u.code||"",Name:u.name,Role:u.role,Active:u.active!==false?"Yes":"No"})))}
+function importUsers(input){
+  importSheet(input,rows=>{
+    let n=0;
+    rows.forEach(r=>{
+      const name=String(r.Name||r.name||"").trim();if(!name)return;
+      let role=String(r.Role||r.role||"engineer").trim().toLowerCase();
+      if(!ROLES[role])role="engineer";
+      state.users.push({id:"u"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+        code:String(r.Code||r.code||"").trim()||("EMP-"+String(state.users.length+1).padStart(3,"0")),
+        name,role,active:String(r.Active||r.active||"Yes").trim().toLowerCase()!=="no",custom:{}});
+      n++;
+    });
+    save();render();alert(n+" user(s) imported.");
+  });
+}
+/* ----- clients ----- */
+function clientsTemplate(){downloadSheet("clients_template.xlsx","Clients",[{Name:"Anita Sharma",Phone:"+91 90000 11223",Email:"anita@example.com"}])}
+function exportClients(){downloadSheet("clients_export.xlsx","Clients",state.clients.map(c=>({Name:c.name,Phone:c.phone||"",Email:c.email||""})))}
+function importClients(input){
+  importSheet(input,rows=>{
+    let n=0;
+    rows.forEach(r=>{
+      const name=String(r.Name||r.name||"").trim();if(!name)return;
+      state.clients.push({id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+        name,phone:String(r.Phone||r.phone||"").trim(),email:String(r.Email||r.email||"").trim(),custom:{}});
+      n++;
+    });
+    save();render();alert(n+" client(s) imported.");
+  });
+}
+/* ----- projects ----- */
+function projectsTemplate(){downloadSheet("projects_template.xlsx","Projects",[{Code:"PRJ-004",Name:"Example Towers, Block C",Clients:"Anita Sharma, Mr. Sharma",Handover:"2025-01-15",DuesCleared:"Yes",FreeVisitsUsed:0,WarrantyCarcassMonths:120,WarrantyInstallMonths:12,WarrantyEdgeMonths:12,WarrantyOnsiteMonths:6}])}
+function exportProjects(){downloadSheet("projects_export.xlsx","Projects",state.projects.map(p=>{const w=p.warranty||defaultWarranty();return {
+  Code:p.code,Name:p.name,Clients:(p.clients||[]).map(id=>uname(id)).join(", "),
+  Handover:new Date(p.handover).toISOString().slice(0,10),DuesCleared:p.duesCleared?"Yes":"No",
+  FreeVisitsUsed:p.freeVisitsUsed||0,WarrantyCarcassMonths:w.carcass,WarrantyInstallMonths:w.install,
+  WarrantyEdgeMonths:w.edge,WarrantyOnsiteMonths:w.onsite};}))}
+function importProjects(input){
+  importSheet(input,rows=>{
+    let n=0;
+    rows.forEach(r=>{
+      const name=String(r.Name||r.name||"").trim();if(!name)return;
+      let code=String(r.Code||r.code||"").trim()||("PRJ-"+String(state.projects.length+1).padStart(3,"0"));
+      if(state.projects.some(p=>p.code===code))code=code+"-"+Math.random().toString(36).slice(2,4);
+      const clientNames=String(r.Clients||r.clients||"").split(",").map(s=>s.trim()).filter(Boolean);
+      const clients=clientNames.map(nm=>{
+        let c=state.clients.find(c=>c.name.toLowerCase()===nm.toLowerCase());
+        if(!c){c={id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm,phone:"",email:"",custom:{}};state.clients.push(c)}
+        return c.id;
+      });
+      const hov=r.Handover?new Date(r.Handover).getTime():now();
+      state.projects.push({code,name,clients,handover:isNaN(hov)?now():hov,
+        duesCleared:String(r.DuesCleared||r.duesCleared||"Yes").trim().toLowerCase()!=="no",
+        freeVisitsUsed:+r.FreeVisitsUsed||0,
+        warranty:{carcass:+r.WarrantyCarcassMonths||0,install:+r.WarrantyInstallMonths||0,edge:+r.WarrantyEdgeMonths||0,onsite:+r.WarrantyOnsiteMonths||0},
+        custom:{}});
+      n++;
+    });
+    save();render();alert(n+" project(s) imported.");
+  });
+}
+/* ----- categories ----- */
+function categoriesTemplate(){downloadSheet("categories_template.xlsx","Categories",[{Name:"Glass & Mirror",Template:Object.keys(COV_TPL)[0],Note:"Tolerance note shown at triage"}])}
+function exportCategories(){downloadSheet("categories_export.xlsx","Categories",catNames().map(c=>({Name:c,Template:catDef(c).tpl,Note:catDef(c).note||""})))}
+function importCategories(input){
+  importSheet(input,rows=>{
+    let n=0;
+    rows.forEach(r=>{
+      const name=String(r.Name||r.name||"").trim();if(!name)return;
+      let tpl=String(r.Template||r.template||"").trim();
+      if(!COV_TPL[tpl])tpl=Object.keys(COV_TPL)[Object.keys(COV_TPL).length-1];
+      state.categories[name]={tpl,note:String(r.Note||r.note||"").trim()};
+      n++;
+    });
+    save();render();alert(n+" category(ies) imported.");
+  });
+}
+/* ----- complaints / tickets ----- */
+function ticketsTemplate(){downloadSheet("complaints_template.xlsx","Complaints",[{Title:"Kitchen shutter not closing",Description:"Hinge misaligned, since last week",Phone:"9876543210",ProjectText:"Primark Econest, Tower B",SiteInfo:"Flat 1203 - kitchen",Category:catNames()[0]||"",Priority:"P3",AccessWindow:"Weekdays 10 AM - 6 PM",Channel:"Email to support"}])}
+function exportTickets(){downloadSheet("complaints_export.xlsx","Complaints",state.tickets.map(t=>({
+  ID:t.id,ProjectCode:t.projCode||"",Client:uname(t.clientId),Title:t.title,Description:t.desc,
+  Category:t.cat,Priority:t.pri,Status:t.status==="InProgress"?"In Progress":t.status,Owner:uname(t.owner),
+  Phone:t.phone||"",ProjectText:t.projText||"",SiteInfo:t.siteInfo||"",
+  WarrantyDecision:W_LABEL[t.warrantyDecision]||"Pending",Created:fmtDT(t.createdAt)})))}
+function importTickets(input){
+  importSheet(input,rows=>{
+    let n=0;
+    rows.forEach(r=>{
+      const title=String(r.Title||r.title||"").trim(),desc=String(r.Description||r.description||"").trim();
+      if(!title||!desc)return;
+      const id="TKT-"+String(state.seq++).padStart(3,"0");
+      let cat=String(r.Category||r.category||"").trim();
+      if(!catNames().includes(cat))cat=cat||"Other";
+      let pri=String(r.Priority||r.priority||"P3").trim().toUpperCase();
+      if(!["P1","P2","P3","P4"].includes(pri))pri="P3";
+      const t=mk(id,"","",title,desc,cat,pri,"New",null,now());
+      t.accessWindow=String(r.AccessWindow||r.accessWindow||"").trim();
+      t.siteInfo=String(r.SiteInfo||r.siteInfo||"").trim();
+      t.projText=String(r.ProjectText||r.projectText||r.Project||"").trim();
+      t.phone=String(r.Phone||r.phone||"").trim();
+      t.mapped=false;
+      const phoneMatch=t.phone?findClientByPhone(t.phone):null;
+      const channel=String(r.Channel||r.channel||"Bulk import").trim();
+      t.timeline.push(ev("system","",now(),"Created via bulk Excel import (channel: "+channel+"). Awaiting agent mapping — to be linked to the correct "+L("project").toLowerCase()+" and "+L("client").toLowerCase()+" record from the master database."+(phoneMatch?" Phone number matches existing "+L("client").toLowerCase()+" record: "+phoneMatch.name+".":"")));
+      t.timeline.push(ev("public","",now(),"Your request is logged as "+id+". We will update you shortly."));
+      runWorkflows("create",t);
+      state.tickets.unshift(t);
+      n++;
+    });
+    save();render();alert(n+" complaint(s) imported.");
+  });
+}
+/* ----- appearance ----- */
+function adminAppearance(){
+  const c=state.cfg;
+  return `<div class="card">
+    <div class="section-title" style="margin-top:0">Branding</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16em,1fr));gap:0 1.4em">
+      <div><label>App name</label><input value="${esc(c.appName)}" onchange="state.cfg.appName=this.value;state.cfg.monogram=this.value[0]||'S';save();applyTheme();render()"></div>
+      <div><label>Tagline</label><input value="${esc(c.tagline)}" onchange="state.cfg.tagline=this.value;save();applyTheme();render()"></div>
+      <div><label>Monogram</label><input maxlength="2" value="${esc(c.monogram)}" onchange="state.cfg.monogram=this.value;save();render()"></div>
+    </div>
+    <div class="section-title">Theme</div>
+    <div style="display:flex;gap:1.2em;flex-wrap:wrap">
+      ${Object.entries(THEMES).map(([k,t])=>`<div style="text-align:center">
+        <span class="swatch ${c.theme===k?"sel":""}" style="background:linear-gradient(135deg,${t.side},${t.acc})" onclick="state.cfg.theme='${k}';save();applyTheme();render()"></span>
+        <div class="hint">${k}</div></div>`).join("")}
+    </div>
+    <div class="section-title">Base font size (uniform across the app)</div>
+    <div style="display:flex;gap:.6em;flex-wrap:wrap">
+      ${[8,9,10,11,12,13].map(f=>`<button class="btn ${c.fontSize===f?"btn-primary":"btn-ghost"} btn-sm" onclick="state.cfg.fontSize=${f};save();applyTheme();render()">${f}px</button>`).join("")}
+    </div>
+    <div class="hint">One size everywhere; hierarchy comes from bold weights, caps and colour — per your spec.</div>
+  </div>`;
+}
+/* ----- modules & fields (Zoho-style builder) ----- */
+function adminModules(){
+  return state.modules.map((m,mi)=>{
+    const dispName=m.core?L(m.nameKey):m.name;
+    return `<div class="card">
+    <div class="admin-row" style="border-bottom:1px solid var(--line)">
+      <b>Module:</b>
+      ${m.core
+        ?`<input value="${esc(dispName)}" style="font-weight:700" onchange="state.cfg.labels['${m.nameKey}']=this.value||DEFAULT_LABELS['${m.nameKey}'];save();render()" title="Module display name">
+          <span class="badge b-svc">Core</span>`
+        :`<input value="${esc(m.name)}" style="font-weight:700" onchange="state.modules[${mi}].name=this.value;save();render()">
+          <span class="badge b-cat">Custom</span>
+          <button class="btn btn-ghost btn-sm" onclick="if(confirm('Delete module ${esc(m.name)} and all its records?')){delete state.records['${m.id}'];state.modules.splice(${mi},1);if(state.tab==='mod_${m.id}')state.tab='dashboard';save();render()}">✕ Delete module</button>`}
+    </div>
+    ${m.core&&m.labelKeys.length?`
+      <div class="section-title">Standard field names (rename freely)</div>
+      <div class="lbl-grid">
+        ${m.labelKeys.map(k=>`<div><label>${DEFAULT_LABELS[k]}</label>
+          <input value="${esc(L(k))}" onchange="state.cfg.labels['${k}']=this.value||DEFAULT_LABELS['${k}'];save();render()"></div>`).join("")}
+      </div>`:""}
+    <div class="section-title">Custom fields</div>
+    ${m.custom.length?m.custom.map((f,fi)=>`
+      <div class="admin-row">
+        <input value="${esc(f.label)}" class="grow" onchange="state.modules[${mi}].custom[${fi}].label=this.value;save();render()">
+        <span class="badge b-cat">${f.type}</span>
+        ${f.type==="select"?`<input value="${esc((f.options||[]).join(", "))}" placeholder="Options, comma separated" onchange="state.modules[${mi}].custom[${fi}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean);save()">`:""}
+        <label style="margin:0;display:flex;align-items:center;gap:.5em;text-transform:none;letter-spacing:0">
+          <input type="checkbox" ${f.required?"checked":""} onchange="state.modules[${mi}].custom[${fi}].required=this.checked;save()"> Required</label>
+        <button class="btn btn-ghost btn-sm" onclick="if(confirm('Remove field ${esc(f.label)}?')){state.modules[${mi}].custom.splice(${fi},1);save();render()}">✕</button>
+      </div>`).join(""):`<div class="hint">No custom fields yet.</div>`}
+    <div class="admin-row" style="border:none">
+      <input id="nf_lbl_${m.id}" class="grow" placeholder="New field label (e.g., Tower / Flat No., Severity, AMC Ref)">
+      <select id="nf_typ_${m.id}">${FIELD_TYPES.map(t=>`<option>${t}</option>`).join("")}</select>
+      <input id="nf_opt_${m.id}" placeholder="Options (for select)" style="max-width:16em">
+      <label style="margin:0;display:flex;align-items:center;gap:.5em;text-transform:none;letter-spacing:0"><input type="checkbox" id="nf_req_${m.id}"> Required</label>
+      <button class="btn btn-primary btn-sm" onclick="addField('${m.id}')">＋ Add field</button>
+    </div>
+  </div>`}).join("")+`
+  <div class="card">
+    <div class="section-title" style="margin-top:0">＋ New module (like Zoho: Vendors, AMC Contracts, Site Visits…)</div>
+    <div class="admin-row" style="border:none">
+      <input id="nm_name" class="grow" placeholder="Module name">
+      <button class="btn btn-primary btn-sm" onclick="addModule()">＋ Create module</button>
+    </div>
+    <div class="hint">New modules appear in the left menu with their own records (add/edit/remove), built from the fields you define here.</div>
+  </div>`;
+}
+function addField(mid){
+  const g=s=>document.getElementById(s+"_"+mid);
+  const label=g("nf_lbl").value.trim();
+  if(!label){alert("Enter a field label.");return}
+  const type=g("nf_typ").value;
+  const f={key:"cf"+Date.now().toString(36),label,type,required:g("nf_req").checked};
+  if(type==="select")f.options=g("nf_opt").value.split(",").map(s=>s.trim()).filter(Boolean);
+  module_(mid).custom.push(f);
+  save();render();
+}
+function addModule(){
+  const name=document.getElementById("nm_name").value.trim();
+  if(!name){alert("Enter a module name.");return}
+  const id="m"+Date.now().toString(36);
+  state.modules.push({id,name,core:false,labelKeys:[],custom:[]});
+  state.records[id]=[];
+  state.adminTab="modules";save();render();
+}
+/* custom module records */
+function moduleRecordsView(mid){
+  const m=module_(mid);
+  if(!m)return `<div class="empty">Module not found.</div>`;
+  const recs=state.records[mid]||[];
+  const canEdit=isStaffAdmin();
+  return `<div class="pagehead"><h2>${esc(m.name)}</h2><span class="sub">${recs.length} records</span>
+    ${canEdit?`<div class="right"><button class="btn btn-primary btn-sm" onclick="recordModal('${mid}',-1)">＋ Add record</button></div>`:""}</div>
+  ${m.custom.length?`<div class="tbl-wrap"><table class="tbl">
+    <tr>${m.custom.map(f=>`<th>${esc(f.label)}</th>`).join("")}${canEdit?"<th></th>":""}</tr>
+    ${recs.map((r,i)=>`<tr>
+      ${m.custom.map(f=>`<td>${f.type==="checkbox"?(r[f.key]?"✔":"—"):esc(r[f.key]??"")}</td>`).join("")}
+      ${canEdit?`<td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();recordModal('${mid}',${i})">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();if(confirm('Delete record?')){state.records['${mid}'].splice(${i},1);save();render()}">✕</button></td>`:""}
+    </tr>`).join("")}
+  </table></div>${recs.length?"":`<div class="empty">No records yet.</div>`}`
+  :`<div class="empty">No fields defined — add fields in ${L("admin")} → Modules &amp; Fields.</div>`}`;
+}
+function recordModal(mid,idx){
+  const m=module_(mid);
+  const rec=idx>=0?(state.records[mid]||[])[idx]:{};
+  modal(`<h3>${idx>=0?"Edit":"Add"} record — ${esc(m.name)}</h3>
+  ${m.custom.map(f=>`<label>${esc(f.label)}${f.required?" *":""}</label>${cfInput(f,rec[f.key],`id="rec_${f.key}"`)}`).join("")}
+  <div class="actions-bar">
+    <button class="btn btn-primary" onclick="saveRecord('${mid}',${idx})">Save</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+}
+function saveRecord(mid,idx){
+  const m=module_(mid);
+  const rec=idx>=0?state.records[mid][idx]:{_id:"r"+Date.now().toString(36)};
+  let missing=null;
+  m.custom.forEach(f=>{
+    const el=document.getElementById("rec_"+f.key);if(!el)return;
+    const val=f.type==="checkbox"?el.checked:el.value;
+    if(f.required&&!val&&!missing)missing=f.label;
+    rec[f.key]=val;
+  });
+  if(missing){alert(missing+" is required.");return}
+  if(idx<0){state.records[mid]=state.records[mid]||[];state.records[mid].push(rec)}
+  save();closeModal();render();
+}
+/* ----- workflows ----- */
+function wfActionText(w){
+  const a=w.action;
+  if(a.type==="approval")return "Require approval: "+(ROLES[a.param]||a.param);
+  if(a.type==="assign")return "Auto-assign to "+uname(a.param);
+  if(a.type==="setPriority")return "Set priority "+a.param;
+  if(a.type==="notify")return "Notify: "+a.param;
+  return "Escalate to leadership";
+}
+function adminWorkflows(){
+  return `<div class="card">
+    <div class="section-title" style="margin-top:0">Workflows — approvals &amp; SLA automation</div>
+    ${state.workflows.map((w,i)=>`
+      <div class="admin-row" style="align-items:flex-start">
+        <div class="grow">
+          <b>${esc(w.name)}</b>
+          <div style="display:flex;gap:.5em;flex-wrap:wrap;margin-top:.3em">
+            <span class="badge b-svc">${WF_TRIGGERS[w.trigger]||w.trigger}</span>
+            ${w.cond&&w.cond.field?`<span class="badge b-cat">if ${WF_FIELDS[w.cond.field]} ${WF_OPS[w.cond.op]} "${esc(w.cond.value)}"</span>`:'<span class="badge b-cat">always</span>'}
+            <span class="badge ${w.action.type==="approval"?"b-reopen":"b-w-OEM"}">${esc(wfActionText(w))}</span>
+            <span class="badge b-eff">Effective ${fmtD(new Date(w.effective).getTime())}</span>
+          </div>
+        </div>
+        <label style="margin:0;display:flex;align-items:center;gap:.5em;text-transform:none;letter-spacing:0">
+          <input type="checkbox" ${w.active?"checked":""} onchange="state.workflows[${i}].active=this.checked;save();render()"> Active</label>
+        <button class="btn btn-ghost btn-sm" onclick="if(confirm('Delete workflow?')){state.workflows.splice(${i},1);save();render()}">✕</button>
+      </div>`).join("")}
+    <div class="actions-bar"><button class="btn btn-primary btn-sm" onclick="workflowModal()">＋ Add workflow</button></div>
+    <div class="hint">Approval workflows block start/resolve/close on a ${L("ticket").toLowerCase()} until the named role approves. SLA triggers fire automatically at 70/90/100%.</div>
+  </div>`;
+}
+function workflowModal(){
+  modal(`<h3>Add workflow</h3>
+  <label>Name *</label><input id="wf_name" placeholder="e.g., Chargeable work above estimate needs approval">
+  <label>Trigger *</label>
+  <select id="wf_trig">${Object.entries(WF_TRIGGERS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select>
+  <label>Condition (optional)</label>
+  <div style="display:flex;gap:.6em;flex-wrap:wrap">
+    <select id="wf_cf" style="flex:1"><option value="">— always —</option>${Object.entries(WF_FIELDS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select>
+    <select id="wf_op" style="width:9em">${Object.entries(WF_OPS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select>
+    <input id="wf_val" placeholder="value (e.g., P1, NonWarranty)" style="flex:1">
+  </div>
+  <label>Action *</label>
+  <select id="wf_act" onchange="wfParamUI()">${Object.entries(WF_ACTIONS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select>
+  <div id="wf_param_wrap"></div>
+  <label>Effective date *</label>
+  <input type="date" id="wf_date" value="${new Date().toISOString().slice(0,10)}">
+  <div class="actions-bar">
+    <button class="btn btn-primary" onclick="saveWorkflow()">Add workflow</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+  wfParamUI();
+}
+function wfParamUI(){
+  const a=document.getElementById("wf_act").value;
+  let html="";
+  if(a==="approval")html=`<label>Approver role *</label><select id="wf_param">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select>`;
+  if(a==="assign")html=`<label>Assign to *</label><select id="wf_param">${engineers().map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join("")}</select>`;
+  if(a==="setPriority")html=`<label>Priority *</label><select id="wf_param"><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select>`;
+  if(a==="notify")html=`<label>Notification text *</label><input id="wf_param" placeholder="Message added as internal note">`;
+  if(a==="escalate")html=`<input type="hidden" id="wf_param" value="">`;
+  document.getElementById("wf_param_wrap").innerHTML=html;
+}
+function saveWorkflow(){
+  const g=id=>document.getElementById(id);
+  const name=g("wf_name").value.trim(),date=g("wf_date").value;
+  if(!name||!date){alert("Name and effective date are mandatory.");return}
+  const cf=g("wf_cf").value;
+  state.workflows.push({id:"w"+Date.now().toString(36),name,module:"complaints",
+    trigger:g("wf_trig").value,
+    cond:cf?{field:cf,op:g("wf_op").value,value:g("wf_val").value}:null,
+    action:{type:g("wf_act").value,param:g("wf_param")?g("wf_param").value:""},
+    active:true,effective:date});
+  save();closeModal();render();
+}
+/* ----- variables (all editable, with effective dates) ----- */
+function adminVariables(){
+  return `<div class="card">
+    <div class="section-title" style="margin-top:0">Variables — every change needs an effective date</div>
+    ${state.vars.map((v,i)=>`
+      <div class="admin-row">
+        <span class="grow"><b>${esc(v.label)}</b><div class="hint">${v.key}${v.history.length?` · ${v.history.length} previous value${v.history.length>1?"s":""}`:""}</div></span>
+        <b>${v.value}</b>
+        <span class="badge b-eff">Effective ${fmtD(new Date(v.effective).getTime())}</span>
+        <button class="btn btn-ghost btn-sm" onclick="varModal(${i})">Edit</button>
+      </div>`).join("")}
+    <div class="sop-note">These drive SLAs, reopen/notice windows and free-visit quotas across the app. History is kept for audit (ISO 9001 document control).</div>
+    <div class="section-title">Data</div>
+    <div class="actions-bar"><button class="btn btn-ghost" onclick="resetDemo()">↺ Reset all demo data</button></div>
+  </div>`;
+}
+function varModal(i){
+  const v=state.vars[i];
+  modal(`<h3>Edit variable</h3><div class="sub">${esc(v.label)} (${v.key})</div>
+  <label>New value *</label>
+  <input type="number" id="vm_val" value="${v.value}">
+  <label>Effective date *</label>
+  <input type="date" id="vm_date" value="${new Date().toISOString().slice(0,10)}">
+  ${v.history.length?`<div class="section-title">History</div>
+    ${v.history.map(h=>`<div class="check-row">${h.value} — effective ${fmtD(new Date(h.effective).getTime())}, changed by ${uname(h.changedBy)} on ${fmtD(h.changedAt)}</div>`).join("")}`:""}
+  <div class="actions-bar">
+    <button class="btn btn-primary" onclick="saveVar(${i})">Save with effective date</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>`);
+}
+function saveVar(i){
+  const v=state.vars[i];
+  const val=document.getElementById("vm_val").value,date=document.getElementById("vm_date").value;
+  if(val===""||!date){alert("Value and effective date are mandatory.");return}
+  if(+val!==+v.value){v.history.push({value:v.value,effective:v.effective,changedBy:state.viewer,changedAt:now()})}
+  v.value=+val;v.effective=date;
+  save();closeModal();render();
+}
+
+/* ================= PUBLIC WEBFORM ================= */
+function webformView(){
+  const c=state.cfg;
+  return `<div class="webform-wrap"><div class="webform-card">
+    <div class="wf-head"><div class="mono">${esc(c.monogram||"S")}</div><div><div class="nm"><b>${esc(c.appName)}</b></div><div class="tg">Service request form</div></div></div>
+    <h2 style="margin-top:1em">Raise a service request</h2>
+    <div class="hint">Tell us what's going on and how to reach you — our team will review and map this to your project shortly.</div>
+    <label>Your name *</label><input id="wf_name" placeholder="Full name">
+    <label>Contact phone number *</label><input id="wf_phone" placeholder="e.g., 98765 43210">
+    <div class="hint">Used to look up your ${L("client").toLowerCase()} record in our database.</div>
+    <label>Email (optional)</label><input id="wf_email" placeholder="you@example.com">
+    <label>${L("project")} / site *</label><input id="wf_proj_text" placeholder="e.g., Primark Econest, Tower B, Flat 1203">
+    <label>Site / location details</label><input id="wf_site" placeholder="e.g., master bedroom wardrobe">
+    <label>Issue title *</label><input id="wf_title" placeholder="e.g., Kitchen shutter not closing">
+    <label>Issue description *</label><textarea id="wf_desc" placeholder="What's happening, since when…"></textarea>
+    <label>${L("category")} (if known)</label><select id="wf_cat"><option value="">Not sure</option>${catNames().map(c2=>`<option>${c2}</option>`).join("")}</select>
+    <label>Photo / video (recommended)</label><input type="file" id="wf_file" accept="image/*,video/*">
+    <label>Best time to visit</label><input id="wf_access" placeholder="e.g., Weekdays 10 AM – 6 PM">
+    <div class="actions-bar"><button class="btn btn-primary" onclick="submitWebform()">Submit request</button></div>
+  </div></div>`;
+}
+function submitWebform(){
+  const g=id=>document.getElementById(id);
+  const name=g("wf_name").value.trim(),phone=g("wf_phone").value.trim(),title=g("wf_title").value.trim(),desc=g("wf_desc").value.trim(),proj=g("wf_proj_text").value.trim();
+  if(!name||!phone||!title||!desc||!proj){alert("Please fill in all required fields (marked *).");return}
+  const f=g("wf_file").files[0];
+  const fin=(attData)=>{
+    const id="TKT-"+String(state.seq++).padStart(3,"0");
+    const t=mk(id,"","",title,desc,g("wf_cat").value||"Other","P3","New",null,now());
+    t.accessWindow=g("wf_access").value;
+    t.siteInfo=g("wf_site").value;
+    t.projText=proj;
+    t.phone=phone;
+    t.mapped=false;
+    const email=g("wf_email").value.trim();
+    const phoneMatch=findClientByPhone(phone);
+    t.timeline.push(ev("system","",now(),"Submitted via public webform by "+name+(email?" ("+email+")":"")+". Awaiting agent mapping — to be linked to the correct "+L("project").toLowerCase()+" and "+L("client").toLowerCase()+" record from the master database."+(phoneMatch?" Phone number matches existing "+L("client").toLowerCase()+" record: "+phoneMatch.name+".":" No "+L("client").toLowerCase()+" record matches this phone number yet.")));
+    t.timeline.push(ev("public","",now(),"Your request is logged as "+id+". We will update you shortly."));
+    if(f)t.attachments.push({name:f.name,by:"",data:attData||null});
+    runWorkflows("create",t);
+    state.tickets.unshift(t);save();
+    document.querySelector(".webform-card").innerHTML=`<div class="wf-head"><div class="mono">${esc(c.monogram||"S")}</div><div><div class="nm"><b>${esc(state.cfg.appName)}</b></div><div class="tg">Service request form</div></div></div>
+      <h2 style="margin-top:1em">Thank you, ${esc(name)}!</h2>
+      <div class="hint">Your request has been received and logged as <b>${id}</b>. Our team will review it and reach out on <b>${esc(phone)}</b> shortly.</div>`;
+  };
+  const c=state.cfg;
+  if(f&&f.type.startsWith("image/")&&f.size<2e6){const r=new FileReader();r.onload=e=>fin(e.target.result);r.readAsDataURL(f)}
+  else fin(null);
+}
+
+if(location.hash.toLowerCase().startsWith("#webform")){
+  document.body.classList.add("webform-mode");
+  document.getElementById("view").innerHTML=webformView();
+}else{
+  applyTheme();
+  render();
+}
+</script>
+</body>
+</html>
