@@ -1218,6 +1218,7 @@ function render_nf_proj(){
 }
 function submitNew(isClient){
   const g=id=>document.getElementById(id);
+  const u=me();
   const title=g("nf_title").value.trim(),desc=g("nf_desc").value.trim();
   if(!title||!desc){alert("Issue title and description are required.");return}
   if(!g("nf_phone").value.trim()){alert("Contact phone number is required.");return}
@@ -1236,7 +1237,7 @@ function submitNew(isClient){
     phone:g("nf_phone").value.trim(),
     site:g("nf_site").value,
     access:g("nf_access").value,channel:isClient?"portal":g("nf_channel").value,
-    clientId:isClient?null:g("nf_client").value,attName:f?f.name:null,attData,custom});
+    clientId:isClient?u.id:null,attName:f?f.name:null,attData,custom});
   if(f&&f.type.startsWith("image/")&&f.size<2e6){const r=new FileReader();r.onload=e=>fin(e.target.result);r.readAsDataURL(f)}
   else fin(null);
 }
